@@ -1,9 +1,9 @@
 """API request/response models for Visual AutoView."""
 
-from dataclasses import dataclass, field, asdict
+import json
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-import json
 
 
 @dataclass

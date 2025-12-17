@@ -8,8 +8,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN
 from .api import setup_api
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -1,9 +1,9 @@
 """Search Engine - Full-text search across automations."""
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple
-import logging
+from typing import Any, Dict, List, Optional, Tuple
 
 _LOGGER = logging.getLogger(__name__)
 

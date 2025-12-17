@@ -1,20 +1,16 @@
 """Base API handler for Visual AutoView."""
 
-import logging
 import json
-from typing import Any, Callable, Dict, Optional
-from datetime import datetime
+import logging
 from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Any, Callable, Dict, Optional
 
-from homeassistant.core import HomeAssistant
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.const import (
-    HTTP_OK,
-    HTTP_CREATED,
-    HTTP_BAD_REQUEST,
-    HTTP_NOT_FOUND,
-    HTTP_INTERNAL_SERVER_ERROR,
-)
+from homeassistant.const import (HTTP_BAD_REQUEST, HTTP_CREATED,
+                                 HTTP_INTERNAL_SERVER_ERROR, HTTP_NOT_FOUND,
+                                 HTTP_OK)
+from homeassistant.core import HomeAssistant
 
 from .models import ApiResponse, ErrorResponse, SerializationHelper
 

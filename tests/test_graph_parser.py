@@ -1,9 +1,10 @@
 """Unit tests for the graph parser module."""
 
-import pytest
+import importlib.util
 import sys
 from pathlib import Path
-import importlib.util
+
+import pytest
 
 # Load the modules directly without going through __init__.py
 spec_const = importlib.util.spec_from_file_location(

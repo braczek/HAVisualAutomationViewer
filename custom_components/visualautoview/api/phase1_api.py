@@ -2,16 +2,13 @@
 
 import logging
 from typing import Any, Dict, Optional
+
+from homeassistant.const import (HTTP_BAD_REQUEST, HTTP_INTERNAL_SERVER_ERROR,
+                                 HTTP_NOT_FOUND, HTTP_OK)
 from homeassistant.core import HomeAssistant
-from homeassistant.const import (
-    HTTP_OK,
-    HTTP_BAD_REQUEST,
-    HTTP_NOT_FOUND,
-    HTTP_INTERNAL_SERVER_ERROR,
-)
 
 from ..graph_parser import AutomationGraphParser
-from .base import RestApiEndpoint, ApiErrorHandler
+from .base import ApiErrorHandler, RestApiEndpoint
 from .models import GraphRequestParams
 
 _LOGGER = logging.getLogger(__name__)

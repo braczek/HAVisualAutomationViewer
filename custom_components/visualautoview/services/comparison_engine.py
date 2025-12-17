@@ -1,9 +1,9 @@
 """Comparison Engine - Compare automations and find similarities."""
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Literal
-import logging
+from typing import Any, Dict, List, Literal, Optional
 
 _LOGGER = logging.getLogger(__name__)
 

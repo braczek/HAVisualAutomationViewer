@@ -5,7 +5,7 @@ execution frequency, duration, and success rate.
 """
 
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 

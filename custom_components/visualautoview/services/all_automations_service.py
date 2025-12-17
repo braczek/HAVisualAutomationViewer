@@ -1,9 +1,9 @@
 """All Automations Service - Fetch and manage all automations as mini-graphs."""
 
-from dataclasses import dataclass, field, asdict
-from datetime import datetime
-from typing import Dict, List, Any, Optional
 import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 # These imports would come from Phase 1
 # from ..graph_parser import AutomationGraph, AutomationGraphParser

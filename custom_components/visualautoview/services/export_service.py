@@ -1,9 +1,9 @@
 """Export Service - Handle graph exports in multiple formats."""
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Any, Optional, Literal
-import logging
+from typing import Any, Dict, List, Literal, Optional
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -186,8 +186,8 @@ class ExportService:
         self, automation_id: str, options: ExportOptions
     ) -> ExportResult:
         """Export as PNG image."""
-        import time
         import os
+        import time
 
         start_time = time.time()
         _LOGGER.debug(
@@ -248,8 +248,8 @@ class ExportService:
         self, automation_id: str, options: ExportOptions
     ) -> ExportResult:
         """Export as SVG image."""
-        import time
         import os
+        import time
 
         start_time = time.time()
         _LOGGER.debug(f"Exporting {automation_id} as SVG")
@@ -315,8 +315,8 @@ class ExportService:
         self, automation_id: str, options: ExportOptions
     ) -> ExportResult:
         """Export as PDF document."""
-        import time
         import os
+        import time
 
         start_time = time.time()
         _LOGGER.debug(f"Exporting {automation_id} as PDF")

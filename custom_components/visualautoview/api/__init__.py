@@ -1,6 +1,7 @@
 """API module for Visual AutoView integration."""
 
 import logging
+
 from homeassistant.core import HomeAssistant
 
 from .base import ApiRegistry

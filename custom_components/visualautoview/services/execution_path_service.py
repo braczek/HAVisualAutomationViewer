@@ -5,7 +5,7 @@ which conditions passed/failed and which actions executed.
 """
 
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Literal
 

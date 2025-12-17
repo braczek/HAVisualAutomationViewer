@@ -5,7 +5,7 @@ potential issues like circular dependencies.
 """
 
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 _LOGGER = logging.getLogger(__name__)
