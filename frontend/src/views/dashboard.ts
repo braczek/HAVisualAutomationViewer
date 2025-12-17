@@ -6,7 +6,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { VisualAutoViewApi } from '../services/api';
-import './graph';
+import '../components/graph';
 
 interface Automation {
   entity_id: string;
