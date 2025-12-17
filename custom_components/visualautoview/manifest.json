@@ -9,8 +9,9 @@
     "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
     "requirements": [],
     "version": "1.0.0",
-    "dependencies": [],
+    "dependencies": [
+        "http"
+    ],
     "homeassistant": "2023.11.0",
-    "iot_class": "calculated",
-    "integration_type": "service"
+    "iot_class": "calculated"
 }
