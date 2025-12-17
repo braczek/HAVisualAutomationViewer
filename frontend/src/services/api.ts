@@ -7,9 +7,11 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 
 interface ApiResponse<T = any> {
   success: boolean;
-  data: T;
+  data?: T;
   message?: string;
   timestamp?: string;
+  // Allow direct property access for convenience
+  [key: string]: any;
 }
 
 interface GraphData {
@@ -129,7 +131,7 @@ export class VisualAutoViewApi {
   // Phase 2: Export
   async exportAutomation(
     automationId: string,
-    format: 'png' | 'svg' | 'pdf' = 'png',
+    format: 'png' | 'svg' | 'pdf' | 'json' = 'png',
     quality: 'low' | 'medium' | 'high' = 'medium'
   ): Promise<ApiResponse<{ file_path: string; download_url: string }>> {
     return this.api.post('/phase2/export', {

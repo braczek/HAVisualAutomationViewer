@@ -143,7 +143,7 @@ export class GraphVisualization extends LitElement {
     if (!this.graphContainer) return;
 
     const nodes = new DataSet(this.getStyledNodes());
-    const edges = new DataSet(this.edges);
+    const edges = new DataSet(this.edges as any);
 
     const options = {
       physics: {
@@ -168,6 +168,7 @@ export class GraphVisualization extends LitElement {
           },
         },
         smooth: {
+          enabled: true,
           type: 'continuous',
           roundness: 0.5,
         },
@@ -187,7 +188,7 @@ export class GraphVisualization extends LitElement {
       },
     };
 
-    this.network = new Network(this.graphContainer, { nodes, edges }, options);
+    this.network = new Network(this.graphContainer, { nodes, edges } as any, options);
 
     // Event listeners
     if (this.network) {
@@ -214,9 +215,9 @@ export class GraphVisualization extends LitElement {
     }
 
     const nodes = new DataSet(this.getStyledNodes());
-    const edges = new DataSet(this.edges);
+    const edges = new DataSet(this.edges as any);
 
-    this.network.setData({ nodes, edges });
+    this.network.setData({ nodes, edges } as any);
   }
 
   private getStyledNodes(): Node[] {
@@ -276,7 +277,6 @@ export class GraphVisualization extends LitElement {
 
   resetLayout() {
     if (this.network) {
-      this.network.resetPhysics();
       this.network.fit({ animation: true });
     }
   }
