@@ -8,7 +8,7 @@ import importlib.util
 # Load the modules directly without going through __init__.py
 spec_const = importlib.util.spec_from_file_location(
     "const",
-    Path(__file__).parent.parent / "custom_components" / "visualautoview" / "const.py"
+    Path(__file__).parent.parent / "custom_components" / "visualautoview" / "const.py",
 )
 const = importlib.util.module_from_spec(spec_const)
 sys.modules["const"] = const
@@ -16,7 +16,10 @@ spec_const.loader.exec_module(const)
 
 spec_parser = importlib.util.spec_from_file_location(
     "graph_parser",
-    Path(__file__).parent.parent / "custom_components" / "visualautoview" / "graph_parser.py"
+    Path(__file__).parent.parent
+    / "custom_components"
+    / "visualautoview"
+    / "graph_parser.py",
 )
 graph_parser = importlib.util.module_from_spec(spec_parser)
 # Add const as a dependency
@@ -48,7 +51,7 @@ class TestAutomationNode:
             data={"platform": "state"},
             color="#4CAF50",
         )
-        
+
         assert node.id == "test_1"
         assert node.label == "Test Node"
         assert node.type == COMP_TYPE_TRIGGER
@@ -63,7 +66,7 @@ class TestAutomationNode:
             data={"platform": "state"},
             color="#4CAF50",
         )
-        
+
         node_dict = node.to_dict()
         assert node_dict["id"] == "test_1"
         assert node_dict["label"] == "Test Node"
@@ -80,7 +83,7 @@ class TestAutomationEdge:
             to_node="node_2",
             label="connects_to",
         )
-        
+
         assert edge.from_node == "node_1"
         assert edge.to_node == "node_2"
         assert edge.label == "connects_to"
@@ -91,7 +94,7 @@ class TestAutomationEdge:
             from_node="node_1",
             to_node="node_2",
         )
-        
+
         edge_dict = edge.to_dict()
         assert edge_dict["from_node"] == "node_1"
         assert edge_dict["to_node"] == "node_2"
@@ -103,7 +106,7 @@ class TestAutomationGraph:
     def test_empty_graph_creation(self):
         """Test creating an empty graph."""
         graph = AutomationGraph()
-        
+
         assert len(graph.nodes) == 0
         assert len(graph.edges) == 0
         assert len(graph.metadata) == 0
@@ -117,13 +120,13 @@ class TestAutomationGraph:
             data={},
         )
         edge = AutomationEdge(from_node="test_1", to_node="test_2")
-        
+
         graph = AutomationGraph(
             nodes=[node],
             edges=[edge],
             metadata={"test": "value"},
         )
-        
+
         graph_dict = graph.to_dict()
         assert len(graph_dict["nodes"]) == 1
         assert len(graph_dict["edges"]) == 1
@@ -150,18 +153,18 @@ class TestSimpleAutomation:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Should have: metadata, trigger, action nodes
         assert len(graph.nodes) >= 3
-        
+
         # Check node types exist
         node_types = [node.type for node in graph.nodes]
         assert COMP_TYPE_METADATA in node_types
         assert COMP_TYPE_TRIGGER in node_types
         assert COMP_TYPE_ACTION in node_types
-        
+
         # Check edges exist
         assert len(graph.edges) > 0
 
@@ -187,9 +190,9 @@ class TestSimpleAutomation:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Count trigger nodes
         trigger_nodes = [n for n in graph.nodes if n.type == COMP_TYPE_TRIGGER]
         assert len(trigger_nodes) == 2
@@ -220,13 +223,13 @@ class TestSimpleAutomation:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Check for condition nodes
         condition_nodes = [n for n in graph.nodes if n.type == COMP_TYPE_CONDITION]
         assert len(condition_nodes) == 2
-        
+
         # Check edges connect properly
         assert len(graph.edges) > 0
 
@@ -254,15 +257,17 @@ class TestSimpleAutomation:
                 },
             ],
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Count action nodes
         action_nodes = [n for n in graph.nodes if n.type == COMP_TYPE_ACTION]
         assert len(action_nodes) == 3
-        
+
         # Check actions are connected in sequence
-        action_edges = [e for e in graph.edges if e.from_node in [n.id for n in action_nodes]]
+        action_edges = [
+            e for e in graph.edges if e.from_node in [n.id for n in action_nodes]
+        ]
         assert len(action_edges) >= 2  # At least 2 edges connecting 3 actions
 
     def test_complex_automation(self):
@@ -303,24 +308,24 @@ class TestSimpleAutomation:
                 },
             ],
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Verify complete structure
         assert graph.metadata["alias"] == "Motion Light Control"
         assert graph.metadata["automation_id"] == "complex"
-        
+
         # Check all node types present
         node_types = [n.type for n in graph.nodes]
         assert COMP_TYPE_METADATA in node_types
         assert COMP_TYPE_TRIGGER in node_types
         assert COMP_TYPE_CONDITION in node_types
         assert COMP_TYPE_ACTION in node_types
-        
+
         # Check nodes
         assert len([n for n in graph.nodes if n.type == COMP_TYPE_CONDITION]) == 2
         assert len([n for n in graph.nodes if n.type == COMP_TYPE_ACTION]) == 3
-        
+
         # Check edges
         assert len(graph.edges) > 0
 
@@ -342,9 +347,9 @@ class TestEdgeCases:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Should still work
         assert len(graph.nodes) >= 3
         assert len(graph.edges) > 0
@@ -365,7 +370,7 @@ class TestEdgeCases:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
         assert len(graph.nodes) >= 3
 
@@ -382,29 +387,31 @@ class TestEdgeCases:
                 "target": {"entity_id": "light.test"},
             },
         }
-        
+
         graph = parse_automation(automation)
-        
+
         # Should use default alias
-        metadata_node = next((n for n in graph.nodes if n.type == COMP_TYPE_METADATA), None)
+        metadata_node = next(
+            (n for n in graph.nodes if n.type == COMP_TYPE_METADATA), None
+        )
         assert metadata_node is not None
         assert metadata_node.label == "Automation"
 
     def test_trigger_label_formatting(self):
         """Test trigger label formatting for various platforms."""
         parser = AutomationGraphParser()
-        
+
         # State trigger
         state_trigger = {"platform": "state", "entity_id": "sensor.test", "to": "on"}
         label = parser._format_trigger_label(state_trigger, 0)
         assert "sensor.test" in label
         assert "on" in label
-        
+
         # Time trigger
         time_trigger = {"platform": "time", "at": "12:00:00"}
         label = parser._format_trigger_label(time_trigger, 0)
         assert "12:00:00" in label
-        
+
         # Sun trigger
         sun_trigger = {"platform": "sun", "event": "sunset"}
         label = parser._format_trigger_label(sun_trigger, 0)
@@ -413,7 +420,7 @@ class TestEdgeCases:
     def test_condition_label_formatting(self):
         """Test condition label formatting for various types."""
         parser = AutomationGraphParser()
-        
+
         # State condition
         state_cond = {
             "condition": "state",
@@ -423,7 +430,7 @@ class TestEdgeCases:
         label = parser._format_condition_label(state_cond, 0)
         assert "light.test" in label
         assert "off" in label
-        
+
         # Sun condition
         sun_cond = {
             "condition": "sun",
@@ -437,7 +444,7 @@ class TestEdgeCases:
     def test_action_label_formatting(self):
         """Test action label formatting for various types."""
         parser = AutomationGraphParser()
-        
+
         # Service action
         service_action = {
             "service": "light.turn_on",
@@ -445,7 +452,7 @@ class TestEdgeCases:
         }
         label = parser._format_action_label(service_action, 0)
         assert "light.turn_on" in label
-        
+
         # Delay action
         delay_action = {"delay": {"seconds": 30}}
         label = parser._format_action_label(delay_action, 0)

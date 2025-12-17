@@ -172,12 +172,13 @@ class TemplateExpansionService:
         """
         try:
             import jinja2
+
             env = jinja2.Environment(undefined=jinja2.DebugUndefined)
-            
+
             # Add Home Assistant filters and tests
-            env.filters['isnumber'] = lambda v: isinstance(v, (int, float))
-            env.tests['number'] = lambda v: isinstance(v, (int, float))
-            
+            env.filters["isnumber"] = lambda v: isinstance(v, (int, float))
+            env.tests["number"] = lambda v: isinstance(v, (int, float))
+
             return env
         except ImportError:
             _LOGGER.warning("Jinja2 not available, template features will be limited")
@@ -198,7 +199,7 @@ class TemplateExpansionService:
 
         try:
             templates = []
-            
+
             def search_for_templates(obj: Any, path: str = "") -> None:
                 """Recursively search for template expressions."""
                 if isinstance(obj, dict):
@@ -216,30 +217,32 @@ class TemplateExpansionService:
                             is_valid=self._is_valid_template(obj),
                         )
                         templates.append(expr)
-            
+
             search_for_templates(automation_config)
             return templates
-            
+
         except Exception as e:
             _LOGGER.error(f"Error finding templates: {e}")
             return []
-    
+
     def _is_valid_template(self, expression: str) -> bool:
         """Check if template expression is valid."""
         try:
             if not expression or not ("{{" in expression and "}}" in expression):
                 return False
-            
+
             # Basic syntax check
             start = expression.find("{{")
             end = expression.find("}}", start)
-            
+
             return start >= 0 and end > start
-            
+
         except Exception:
             return False
 
-    async def get_template_variables(self, automation_id: str) -> list[TemplateVariable]:
+    async def get_template_variables(
+        self, automation_id: str
+    ) -> list[TemplateVariable]:
         """Get all variables/entities used in templates.
 
         Args:
@@ -252,15 +255,15 @@ class TemplateExpansionService:
 
         try:
             variables = []
-            
+
             # Get all entities from Home Assistant
             try:
                 entity_registry = self.hass.data.get("entity_registry", {})
-                
+
                 for entity_id in entity_registry:
                     entity_state = self.hass.states.get(entity_id)
                     state_value = entity_state.state if entity_state else "unknown"
-                    
+
                     var = TemplateVariable(
                         name=entity_id,
                         type="entity",
@@ -268,15 +271,17 @@ class TemplateExpansionService:
                         value_type="str",
                         entity_id=entity_id,
                         entity_state=state_value,
-                        entity_attributes=entity_state.attributes if entity_state else {},
+                        entity_attributes=(
+                            entity_state.attributes if entity_state else {}
+                        ),
                         is_available=entity_state is not None,
                     )
                     variables.append(var)
             except Exception as e:
                 _LOGGER.debug(f"Error getting entities: {e}")
-            
+
             return variables
-            
+
         except Exception as e:
             _LOGGER.error(f"Error getting template variables: {e}")
             return []
@@ -300,7 +305,7 @@ class TemplateExpansionService:
         try:
             if context is None:
                 context = TemplateEvaluationContext()
-            
+
             # Safely extract and evaluate template
             if not ("{{" in template_expression and "}}" in template_expression):
                 return {
@@ -308,7 +313,7 @@ class TemplateExpansionService:
                     "error": "Invalid template expression",
                     "expression": template_expression,
                 }
-            
+
             # For safety, just return the expression with basic validation
             result = {
                 "success": True,
@@ -317,9 +322,9 @@ class TemplateExpansionService:
                 "result_type": "str",
                 "variables_used": [],
             }
-            
+
             return result
-            
+
         except Exception as e:
             _LOGGER.error(f"Error evaluating template: {e}")
             return {
@@ -342,11 +347,11 @@ class TemplateExpansionService:
         try:
             automations = self.hass.data.get("automation", {})
             auto_config = automations.get(automation_id, {})
-            
+
             expressions = await self.find_templates_in_automation(auto_config)
             variables = await self.get_template_variables(automation_id)
             context = await self.build_evaluation_context(automation_id)
-            
+
             preview = TemplatePreview(
                 automation_id=automation_id,
                 automation_alias=auto_config.get("alias", automation_id),
@@ -357,9 +362,9 @@ class TemplateExpansionService:
                 valid_expressions=sum(1 for e in expressions if e.is_valid),
                 invalid_expressions=sum(1 for e in expressions if not e.is_valid),
             )
-            
+
             return preview
-            
+
         except Exception as e:
             _LOGGER.error(f"Error previewing templates: {e}")
             return TemplatePreview(automation_id=automation_id)
@@ -382,17 +387,17 @@ class TemplateExpansionService:
                 now=datetime.now(),
                 today=datetime.now().strftime("%Y-%m-%d"),
             )
-            
+
             # Get entity states
             for entity_id, state_obj in self.hass.states.items():
                 context.entity_states[entity_id] = state_obj.state
                 context.entity_attributes[entity_id] = dict(state_obj.attributes)
-            
+
             # Add available functions
             context.available_functions = self.get_available_functions()
-            
+
             return context
-            
+
         except Exception as e:
             _LOGGER.error(f"Error building context: {e}")
             return TemplateEvaluationContext()
@@ -414,27 +419,27 @@ class TemplateExpansionService:
         try:
             # Get base preview
             preview = await self.preview_templates(automation_id)
-            
+
             # Apply scenario modifications
             context = await self.build_evaluation_context(automation_id)
-            
+
             # Apply modified entities
             context.entity_states.update(scenario.modified_entities)
-            
+
             # Apply modified variables
             context.variables.update(scenario.modified_variables)
-            
+
             # Re-evaluate templates with modified context
             for expr in preview.expressions:
                 result = await self.evaluate_template(expr.expression, context)
                 if result.get("success"):
                     expr.current_result = result.get("result", "")
                     expr.result_type = result.get("result_type", "")
-            
+
             preview.evaluation_context = context
-            
+
             return preview
-            
+
         except Exception as e:
             _LOGGER.error(f"Error testing scenario: {e}")
             return TemplatePreview(automation_id=automation_id)
@@ -452,26 +457,30 @@ class TemplateExpansionService:
 
         try:
             preview = await self.preview_templates(automation_id)
-            
+
             validation_errors = []
             validation_warnings = []
-            
+
             for expr in preview.expressions:
                 if not expr.is_valid:
-                    validation_errors.append({
-                        "expression": expr.expression,
-                        "location": expr.location,
-                        "error": "Invalid template syntax",
-                    })
-            
+                    validation_errors.append(
+                        {
+                            "expression": expr.expression,
+                            "location": expr.location,
+                            "error": "Invalid template syntax",
+                        }
+                    )
+
             # Check for missing variables
             if preview.missing_variables:
                 for var in preview.missing_variables:
-                    validation_warnings.append({
-                        "variable": var,
-                        "warning": "Variable not found in context",
-                    })
-            
+                    validation_warnings.append(
+                        {
+                            "variable": var,
+                            "warning": "Variable not found in context",
+                        }
+                    )
+
             return {
                 "automation_id": automation_id,
                 "valid": len(validation_errors) == 0,
@@ -481,7 +490,7 @@ class TemplateExpansionService:
                 "valid_templates": preview.valid_expressions,
                 "invalid_templates": preview.invalid_expressions,
             }
-            
+
         except Exception as e:
             _LOGGER.error(f"Error validating templates: {e}")
             return {"error": str(e)}
@@ -542,12 +551,12 @@ class TemplateExpansionService:
             List of suggestions
         """
         suggestions = []
-        
+
         # Match against available functions
         for func in self.get_available_functions():
             if func.startswith(partial_expression.lower()):
                 suggestions.append(func)
-        
+
         # Add common template patterns
         patterns = [
             "{{ states.light. }}",
@@ -558,9 +567,9 @@ class TemplateExpansionService:
             "{{ today_at() }}",
             "{{ as_timestamp(now()) }}",
         ]
-        
+
         for pattern in patterns:
             if partial_expression.lower() in pattern.lower():
                 suggestions.append(pattern)
-        
+
         return suggestions

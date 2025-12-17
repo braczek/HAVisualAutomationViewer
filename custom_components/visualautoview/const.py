@@ -10,10 +10,10 @@ COMP_TYPE_METADATA = "metadata"
 
 # Color scheme for nodes
 COLORS = {
-    COMP_TYPE_TRIGGER: "#4CAF50",      # Green
-    COMP_TYPE_CONDITION: "#FFC107",    # Amber
-    COMP_TYPE_ACTION: "#2196F3",       # Blue
-    COMP_TYPE_METADATA: "#9E9E9E",     # Grey
+    COMP_TYPE_TRIGGER: "#4CAF50",  # Green
+    COMP_TYPE_CONDITION: "#FFC107",  # Amber
+    COMP_TYPE_ACTION: "#2196F3",  # Blue
+    COMP_TYPE_METADATA: "#9E9E9E",  # Grey
 }
 
 # Default values

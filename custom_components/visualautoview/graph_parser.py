@@ -140,7 +140,7 @@ class AutomationGraphParser:
             str: The ID of the metadata node
         """
         metadata_node_id = self._generate_node_id("metadata")
-        
+
         alias = automation_config.get("alias", "Automation")
         description = automation_config.get("description", "")
         automation_id = automation_config.get("id", "unknown")
@@ -156,11 +156,11 @@ class AutomationGraphParser:
             },
             color=COLORS[COMP_TYPE_METADATA],
         )
-        
+
         graph.nodes.append(node)
         graph.metadata["automation_id"] = automation_id
         graph.metadata["alias"] = alias
-        
+
         return metadata_node_id
 
     def _extract_triggers(
@@ -182,7 +182,7 @@ class AutomationGraphParser:
         trigger_ids = []
         for idx, trigger in enumerate(triggers):
             trigger_id = self._generate_node_id("trigger")
-            
+
             trigger_type = trigger.get("platform", "unknown")
             label = self._format_trigger_label(trigger, idx)
 
@@ -193,7 +193,7 @@ class AutomationGraphParser:
                 data=trigger,
                 color=COLORS[COMP_TYPE_TRIGGER],
             )
-            
+
             graph.nodes.append(node)
             trigger_ids.append(trigger_id)
 
@@ -221,7 +221,7 @@ class AutomationGraphParser:
         condition_ids = []
         for idx, condition in enumerate(conditions):
             condition_id = self._generate_node_id("condition")
-            
+
             label = self._format_condition_label(condition, idx)
 
             node = AutomationNode(
@@ -231,7 +231,7 @@ class AutomationGraphParser:
                 data=condition,
                 color=COLORS[COMP_TYPE_CONDITION],
             )
-            
+
             graph.nodes.append(node)
             condition_ids.append(condition_id)
 
@@ -256,7 +256,7 @@ class AutomationGraphParser:
         action_ids = []
         for idx, action in enumerate(actions):
             action_id = self._generate_node_id("action")
-            
+
             label = self._format_action_label(action, idx)
 
             node = AutomationNode(
@@ -266,7 +266,7 @@ class AutomationGraphParser:
                 data=action,
                 color=COLORS[COMP_TYPE_ACTION],
             )
-            
+
             graph.nodes.append(node)
             action_ids.append(action_id)
 
@@ -352,7 +352,7 @@ class AutomationGraphParser:
             str: Formatted label
         """
         platform = trigger.get("platform", "unknown")
-        
+
         if platform == "state":
             entity_id = trigger.get("entity_id", "unknown")
             to_state = trigger.get("to", "")
@@ -385,7 +385,7 @@ class AutomationGraphParser:
             str: Formatted label
         """
         condition_type = condition.get("condition", "unknown")
-        
+
         if condition_type == "state":
             entity_id = condition.get("entity_id", "unknown")
             state = condition.get("state", "unknown")
@@ -434,7 +434,7 @@ class AutomationGraphParser:
         if isinstance(action, str):
             # Simple string action (service call)
             return f"Action: {action}"
-        
+
         if "service" in action:
             service = action.get("service", "unknown")
             # Format: domain.service

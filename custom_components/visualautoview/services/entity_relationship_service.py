@@ -144,28 +144,28 @@ class EntityRelationshipService:
         cache_key = f"{automation_id}:{entity_id}"
         if cache_key in self._relationship_cache:
             return self._relationship_cache[cache_key]
-        
+
         graph = RelationshipGraph()
-        
+
         try:
             # Get all automations from config
             automations = self.hass.data.get("automation", {})
             if not automations:
                 automations = {}
-            
+
             relationships: list[EntityRelationship] = []
             entities_found: dict[str, EntityNode] = {}
-            
+
             # Analyze each automation
             for auto_id, auto_config in automations.items():
                 if automation_id and auto_id != automation_id:
                     continue
-                    
+
                 # Extract triggers
                 triggers = auto_config.get("trigger", [])
                 if not isinstance(triggers, list):
                     triggers = [triggers]
-                    
+
                 for trigger in triggers:
                     if isinstance(trigger, dict):
                         # Entity trigger
@@ -174,22 +174,32 @@ class EntityRelationshipService:
                             if isinstance(ent_id, list):
                                 for e in ent_id:
                                     self._add_relationship(
-                                        relationships, entities_found,
-                                        e, auto_id, auto_config.get("alias", auto_id),
-                                        "trigger", "input", 0.95
+                                        relationships,
+                                        entities_found,
+                                        e,
+                                        auto_id,
+                                        auto_config.get("alias", auto_id),
+                                        "trigger",
+                                        "input",
+                                        0.95,
                                     )
                             else:
                                 self._add_relationship(
-                                    relationships, entities_found,
-                                    ent_id, auto_id, auto_config.get("alias", auto_id),
-                                    "trigger", "input", 0.95
+                                    relationships,
+                                    entities_found,
+                                    ent_id,
+                                    auto_id,
+                                    auto_config.get("alias", auto_id),
+                                    "trigger",
+                                    "input",
+                                    0.95,
                                 )
-                
+
                 # Extract conditions
                 conditions = auto_config.get("condition", [])
                 if not isinstance(conditions, list):
                     conditions = [conditions] if conditions else []
-                    
+
                 for condition in conditions:
                     if isinstance(condition, dict):
                         if "entity_id" in condition:
@@ -197,22 +207,32 @@ class EntityRelationshipService:
                             if isinstance(ent_id, list):
                                 for e in ent_id:
                                     self._add_relationship(
-                                        relationships, entities_found,
-                                        e, auto_id, auto_config.get("alias", auto_id),
-                                        "condition", "input", 0.80
+                                        relationships,
+                                        entities_found,
+                                        e,
+                                        auto_id,
+                                        auto_config.get("alias", auto_id),
+                                        "condition",
+                                        "input",
+                                        0.80,
                                     )
                             else:
                                 self._add_relationship(
-                                    relationships, entities_found,
-                                    ent_id, auto_id, auto_config.get("alias", auto_id),
-                                    "condition", "input", 0.80
+                                    relationships,
+                                    entities_found,
+                                    ent_id,
+                                    auto_id,
+                                    auto_config.get("alias", auto_id),
+                                    "condition",
+                                    "input",
+                                    0.80,
                                 )
-                
+
                 # Extract actions
                 actions = auto_config.get("action", [])
                 if not isinstance(actions, list):
                     actions = [actions] if actions else []
-                    
+
                 for action in actions:
                     if isinstance(action, dict):
                         if "entity_id" in action:
@@ -220,44 +240,65 @@ class EntityRelationshipService:
                             if isinstance(ent_id, list):
                                 for e in ent_id:
                                     self._add_relationship(
-                                        relationships, entities_found,
-                                        e, auto_id, auto_config.get("alias", auto_id),
-                                        "action_target", "output", 0.90
+                                        relationships,
+                                        entities_found,
+                                        e,
+                                        auto_id,
+                                        auto_config.get("alias", auto_id),
+                                        "action_target",
+                                        "output",
+                                        0.90,
                                     )
                             else:
                                 self._add_relationship(
-                                    relationships, entities_found,
-                                    ent_id, auto_id, auto_config.get("alias", auto_id),
-                                    "action_target", "output", 0.90
+                                    relationships,
+                                    entities_found,
+                                    ent_id,
+                                    auto_id,
+                                    auto_config.get("alias", auto_id),
+                                    "action_target",
+                                    "output",
+                                    0.90,
                                 )
-            
+
             # Filter by entity_id if specified
             if entity_id:
                 relationships = [r for r in relationships if r.entity_id == entity_id]
-                entities_found = {entity_id: entities_found.get(entity_id, EntityNode(
-                    entity_id=entity_id,
-                    entity_name=entity_id.split(".")[-1],
-                    entity_type="unknown",
-                    current_state="unknown"
-                ))} if entity_id in entities_found else {}
-            
+                entities_found = (
+                    {
+                        entity_id: entities_found.get(
+                            entity_id,
+                            EntityNode(
+                                entity_id=entity_id,
+                                entity_name=entity_id.split(".")[-1],
+                                entity_type="unknown",
+                                current_state="unknown",
+                            ),
+                        )
+                    }
+                    if entity_id in entities_found
+                    else {}
+                )
+
             graph.entities = entities_found
             graph.relationships = relationships
             graph.total_entities = len(entities_found)
             graph.total_relationships = len(relationships)
             graph.automation_count = len(set(r.automation_id for r in relationships))
-            
+
             if graph.total_entities > 0:
-                graph.avg_relationships_per_entity = len(relationships) / len(entities_found)
-            
+                graph.avg_relationships_per_entity = len(relationships) / len(
+                    entities_found
+                )
+
             # Cache the result
             self._relationship_cache[cache_key] = graph
-            
+
         except Exception as e:
             _LOGGER.error(f"Error getting entity relationships: {e}")
-        
+
         return graph
-    
+
     def _add_relationship(
         self,
         relationships: list[EntityRelationship],
@@ -280,7 +321,7 @@ class EntityRelationshipService:
             strength=strength,
         )
         relationships.append(rel)
-        
+
         # Update or create entity node
         if entity_id not in entities:
             entity_name = entity_id.split(".")[-1] if "." in entity_id else entity_id
@@ -289,18 +330,20 @@ class EntityRelationshipService:
                 entity_id=entity_id,
                 entity_name=entity_name,
                 entity_type=entity_type,
-                current_state=self.hass.states.get(entity_id, None) and self.hass.states.get(entity_id).state or "unknown",
+                current_state=self.hass.states.get(entity_id, None)
+                and self.hass.states.get(entity_id).state
+                or "unknown",
                 relationships=[rel],
             )
         else:
             entities[entity_id].relationships.append(rel)
-        
+
         # Update relationship counts
         if direction in ["input", "bidirectional"]:
             entities[entity_id].incoming_relationships += 1
         if direction in ["output", "bidirectional"]:
             entities[entity_id].outgoing_relationships += 1
-        
+
         # Mark entity roles
         if rel_type == "trigger":
             entities[entity_id].is_trigger_source = True
@@ -322,7 +365,7 @@ class EntityRelationshipService:
 
         try:
             graph = await self.get_entity_relationships(entity_id=entity_id)
-            
+
             if entity_id not in graph.entities:
                 return {
                     "entity_id": entity_id,
@@ -331,15 +374,15 @@ class EntityRelationshipService:
                     "direct_impacts": 0,
                     "indirect_impacts": 0,
                 }
-            
+
             entity_node = graph.entities[entity_id]
             affected = set()
-            
+
             for rel in entity_node.relationships:
                 affected.add(rel.automation_id)
-            
+
             cascades = await self.detect_cascades_for_entity(entity_id, affected)
-            
+
             return {
                 "entity_id": entity_id,
                 "entity_name": entity_node.entity_name,
@@ -370,7 +413,7 @@ class EntityRelationshipService:
 
         cascades = []
         visited = set()
-        
+
         async def find_cascade_chain(
             start_auto_id: str,
             chain: list[str],
@@ -379,21 +422,28 @@ class EntityRelationshipService:
             """Recursively find cascade chains."""
             if start_auto_id in visited or len(chain) > max_depth:
                 return
-            
+
             visited.add(start_auto_id)
             chain.append(start_auto_id)
-            
+
             # Get automations that might be triggered by this one
             try:
-                relationships = await self.get_entity_relationships(automation_id=start_auto_id)
-                
+                relationships = await self.get_entity_relationships(
+                    automation_id=start_auto_id
+                )
+
                 for rel in relationships.relationships:
                     if rel.direction in ["output", "bidirectional"]:
                         # This automation outputs to an entity
                         # Find other automations triggered by this entity
-                        triggered = await self.get_entity_relationships(entity_id=rel.entity_id)
+                        triggered = await self.get_entity_relationships(
+                            entity_id=rel.entity_id
+                        )
                         for triggered_rel in triggered.relationships:
-                            if triggered_rel.relationship_type == "trigger" and triggered_rel.automation_id not in visited:
+                            if (
+                                triggered_rel.relationship_type == "trigger"
+                                and triggered_rel.automation_id not in visited
+                            ):
                                 await find_cascade_chain(
                                     triggered_rel.automation_id,
                                     chain.copy(),
@@ -401,12 +451,12 @@ class EntityRelationshipService:
                                 )
             except Exception:
                 pass
-        
+
         try:
             await find_cascade_chain(automation_id, [])
         except Exception as e:
             _LOGGER.error(f"Error detecting cascades: {e}")
-        
+
         return cascades if cascades else [[automation_id]]
 
     async def find_orphaned_entities(self, automation_id: str) -> list[str]:
@@ -422,17 +472,17 @@ class EntityRelationshipService:
 
         try:
             orphaned = []
-            
+
             # Get automation config
             automations = self.hass.data.get("automation", {})
             auto_config = automations.get(automation_id)
-            
+
             if not auto_config:
                 return orphaned
-            
+
             # Collect all referenced entities
             all_referenced = set()
-            
+
             # Check triggers
             triggers = auto_config.get("trigger", [])
             if not isinstance(triggers, list):
@@ -444,7 +494,7 @@ class EntityRelationshipService:
                         all_referenced.update(ent_id)
                     else:
                         all_referenced.add(ent_id)
-            
+
             # Check conditions
             conditions = auto_config.get("condition", [])
             if not isinstance(conditions, list):
@@ -456,7 +506,7 @@ class EntityRelationshipService:
                         all_referenced.update(ent_id)
                     else:
                         all_referenced.add(ent_id)
-            
+
             # Check actions
             actions = auto_config.get("action", [])
             if not isinstance(actions, list):
@@ -468,7 +518,7 @@ class EntityRelationshipService:
                         all_referenced.update(ent_id)
                     else:
                         all_referenced.add(ent_id)
-            
+
             # Find which are used in conditions/actions (active usage)
             used_in_conditions = set()
             for condition in conditions:
@@ -478,7 +528,7 @@ class EntityRelationshipService:
                         used_in_conditions.update(ent_id)
                     else:
                         used_in_conditions.add(ent_id)
-            
+
             used_in_actions = set()
             for action in actions:
                 if isinstance(action, dict) and "entity_id" in action:
@@ -487,13 +537,13 @@ class EntityRelationshipService:
                         used_in_actions.update(ent_id)
                     else:
                         used_in_actions.add(ent_id)
-            
+
             # Entities only in triggers with no action/condition are potentially orphaned
             orphaned = list(all_referenced - used_in_conditions - used_in_actions)
-            
+
         except Exception as e:
             _LOGGER.error(f"Error finding orphaned entities: {e}")
-        
+
         return orphaned
 
     def calculate_relationship_strength(
@@ -509,7 +559,7 @@ class EntityRelationshipService:
         """
         # Base strength is already assigned
         strength = relationship.strength
-        
+
         # Increase for critical relationship types
         if relationship.relationship_type == "trigger":
             strength = min(1.0, strength * 1.1)
@@ -517,12 +567,12 @@ class EntityRelationshipService:
             strength = min(1.0, strength * 1.05)
         elif relationship.relationship_type == "condition":
             strength = min(1.0, strength * 0.95)
-        
+
         # Consider frequency if available
         if relationship.interaction_count > 0:
             frequency_factor = min(1.2, 1.0 + (relationship.interaction_count * 0.02))
             strength = min(1.0, strength * frequency_factor)
-        
+
         return strength
 
     async def get_cross_automation_impacts(
@@ -536,42 +586,45 @@ class EntityRelationshipService:
         Returns:
             List of affected automations with details
         """
-        _LOGGER.debug(
-            f"Getting cross-automation impacts for {automation_id}"
-        )
+        _LOGGER.debug(f"Getting cross-automation impacts for {automation_id}")
 
         try:
             affected = []
-            
+
             # Get entities this automation outputs to
             graph = await self.get_entity_relationships(automation_id=automation_id)
             output_entities = set()
-            
+
             for rel in graph.relationships:
                 if rel.direction in ["output", "bidirectional"]:
                     output_entities.add(rel.entity_id)
-            
+
             # Find automations triggered by these entities
             for entity_id in output_entities:
                 impact_graph = await self.get_entity_relationships(entity_id=entity_id)
-                
+
                 for rel in impact_graph.relationships:
-                    if rel.automation_id != automation_id and rel.relationship_type == "trigger":
-                        affected.append({
-                            "automation_id": rel.automation_id,
-                            "automation_alias": rel.automation_alias,
-                            "trigger_entity": entity_id,
-                            "relationship_type": rel.relationship_type,
-                            "strength": rel.strength,
-                            "cascade_depth": 1,
-                        })
-            
+                    if (
+                        rel.automation_id != automation_id
+                        and rel.relationship_type == "trigger"
+                    ):
+                        affected.append(
+                            {
+                                "automation_id": rel.automation_id,
+                                "automation_alias": rel.automation_alias,
+                                "trigger_entity": entity_id,
+                                "relationship_type": rel.relationship_type,
+                                "strength": rel.strength,
+                                "cascade_depth": 1,
+                            }
+                        )
+
             return affected
-            
+
         except Exception as e:
             _LOGGER.error(f"Error getting cross-automation impacts: {e}")
             return []
-    
+
     async def detect_cascades_for_entity(
         self,
         entity_id: str,
@@ -579,10 +632,10 @@ class EntityRelationshipService:
     ) -> list[list[str]]:
         """Helper to detect cascades for an entity."""
         cascades = []
-        
+
         for auto_id in affected_automations:
             chain = await self.detect_cascades(auto_id)
             if chain:
                 cascades.extend(chain)
-        
+
         return cascades

@@ -97,9 +97,15 @@ class PerformanceMetricsReport:
             "automation_id": self.automation_id,
             "automation_alias": self.automation_alias,
             "metrics": self.metrics.to_dict(),
-            "hourly_pattern": self.hourly_pattern.to_dict() if self.hourly_pattern else None,
-            "daily_pattern": self.daily_pattern.to_dict() if self.daily_pattern else None,
-            "weekly_pattern": self.weekly_pattern.to_dict() if self.weekly_pattern else None,
+            "hourly_pattern": (
+                self.hourly_pattern.to_dict() if self.hourly_pattern else None
+            ),
+            "daily_pattern": (
+                self.daily_pattern.to_dict() if self.daily_pattern else None
+            ),
+            "weekly_pattern": (
+                self.weekly_pattern.to_dict() if self.weekly_pattern else None
+            ),
             "is_high_frequency": self.is_high_frequency,
             "is_slow": self.is_slow,
             "is_unreliable": self.is_unreliable,
@@ -197,37 +203,52 @@ class PerformanceMetricsService:
 
         try:
             if automation_id not in self._metrics_storage:
-                self._metrics_storage[automation_id] = ExecutionMetrics(automation_id=automation_id)
-            
+                self._metrics_storage[automation_id] = ExecutionMetrics(
+                    automation_id=automation_id
+                )
+
             metrics = self._metrics_storage[automation_id]
             metrics.total_executions += 1
-            
+
             if success:
                 metrics.successful_executions += 1
             else:
                 metrics.failed_executions += 1
                 if error:
                     error_type = error.split(":")[0] if ":" in error else error
-                    metrics.common_errors[error_type] = metrics.common_errors.get(error_type, 0) + 1
+                    metrics.common_errors[error_type] = (
+                        metrics.common_errors.get(error_type, 0) + 1
+                    )
                     metrics.last_error = error
                     metrics.last_error_time = datetime.now()
-            
+
             # Update duration metrics
             if duration_ms > 0:
-                if metrics.min_duration_ms == 0 or duration_ms < metrics.min_duration_ms:
+                if (
+                    metrics.min_duration_ms == 0
+                    or duration_ms < metrics.min_duration_ms
+                ):
                     metrics.min_duration_ms = duration_ms
                 metrics.max_duration_ms = max(metrics.max_duration_ms, duration_ms)
-                
+
                 # Simple moving average
                 metrics.avg_duration_ms = (
-                    (metrics.avg_duration_ms * (metrics.total_executions - 1) + duration_ms) /
-                    metrics.total_executions
-                )
-            
+                    metrics.avg_duration_ms * (metrics.total_executions - 1)
+                    + duration_ms
+                ) / metrics.total_executions
+
             # Update rates
-            metrics.success_rate = metrics.successful_executions / metrics.total_executions if metrics.total_executions > 0 else 0
-            metrics.failure_rate = metrics.failed_executions / metrics.total_executions if metrics.total_executions > 0 else 0
-            
+            metrics.success_rate = (
+                metrics.successful_executions / metrics.total_executions
+                if metrics.total_executions > 0
+                else 0
+            )
+            metrics.failure_rate = (
+                metrics.failed_executions / metrics.total_executions
+                if metrics.total_executions > 0
+                else 0
+            )
+
         except Exception as e:
             _LOGGER.error(f"Error recording execution: {e}")
 
@@ -276,7 +297,7 @@ class PerformanceMetricsService:
 
         try:
             patterns = []
-            
+
             # Create patterns for different time granularities
             if period in ["day", "month"]:
                 hourly = TemporalPattern(
@@ -288,18 +309,21 @@ class PerformanceMetricsService:
                     trend="stable",
                 )
                 patterns.append(hourly)
-            
+
             if period in ["week", "month"]:
                 daily = TemporalPattern(
                     pattern_type="daily",
-                    data={d: 0.0 for d in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]},
+                    data={
+                        d: 0.0
+                        for d in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                    },
                     peak_time="Tuesday",
                     peak_count=0,
                     average_per_period=0.0,
                     trend="stable",
                 )
                 patterns.append(daily)
-            
+
             if period == "month":
                 weekly = TemporalPattern(
                     pattern_type="weekly",
@@ -310,9 +334,9 @@ class PerformanceMetricsService:
                     trend="stable",
                 )
                 patterns.append(weekly)
-            
+
             return patterns
-            
+
         except Exception as e:
             _LOGGER.error(f"Error analyzing patterns: {e}")
             return []
@@ -333,7 +357,7 @@ class PerformanceMetricsService:
         try:
             metrics = await self.get_execution_metrics(automation_id)
             patterns = await self.analyze_temporal_patterns(automation_id)
-            
+
             report = PerformanceMetricsReport(
                 automation_id=automation_id,
                 automation_alias=automation_id.split(".")[-1],
@@ -344,14 +368,16 @@ class PerformanceMetricsService:
                 is_high_frequency=metrics.total_executions > 10,
                 is_slow=metrics.avg_duration_ms > 5000,
                 is_unreliable=metrics.failure_rate > 0.1,
-                performance_rank=self.calculate_performance_rank(automation_id, "speed"),
+                performance_rank=self.calculate_performance_rank(
+                    automation_id, "speed"
+                ),
             )
-            
+
             if metrics.total_executions > 5:
                 report.above_average = metrics.success_rate > 0.8
-            
+
             return report
-            
+
         except Exception as e:
             _LOGGER.error(f"Error getting performance report: {e}")
             return PerformanceMetricsReport(automation_id=automation_id)
@@ -366,46 +392,58 @@ class PerformanceMetricsService:
 
         try:
             system_metrics = SystemPerformanceMetrics()
-            
+
             if not self._metrics_storage:
                 return system_metrics
-            
+
             system_metrics.total_automations = len(self._metrics_storage)
-            system_metrics.active_automations = len([m for m in self._metrics_storage.values() if m.total_executions > 0])
-            
+            system_metrics.active_automations = len(
+                [m for m in self._metrics_storage.values() if m.total_executions > 0]
+            )
+
             total_exec_time = 0
             all_durations = []
             all_errors = {}
-            
+
             for metrics in self._metrics_storage.values():
                 system_metrics.total_executions += metrics.total_executions
                 system_metrics.total_failed_executions += metrics.failed_executions
-                total_exec_time += int(metrics.avg_duration_ms * metrics.total_executions)
-                
+                total_exec_time += int(
+                    metrics.avg_duration_ms * metrics.total_executions
+                )
+
                 if metrics.avg_duration_ms > 0:
-                    all_durations.append((metrics.automation_id, int(metrics.avg_duration_ms)))
-                
+                    all_durations.append(
+                        (metrics.automation_id, int(metrics.avg_duration_ms))
+                    )
+
                 for error, count in metrics.common_errors.items():
                     all_errors[error] = all_errors.get(error, 0) + count
-            
+
             if system_metrics.total_executions > 0:
-                system_metrics.avg_execution_time_ms = total_exec_time / system_metrics.total_executions
-                system_metrics.overall_success_rate = (
-                    (system_metrics.total_executions - system_metrics.total_failed_executions) /
-                    system_metrics.total_executions
+                system_metrics.avg_execution_time_ms = (
+                    total_exec_time / system_metrics.total_executions
                 )
-            
+                system_metrics.overall_success_rate = (
+                    system_metrics.total_executions
+                    - system_metrics.total_failed_executions
+                ) / system_metrics.total_executions
+
             system_metrics.total_execution_time_ms = total_exec_time
-            
+
             # Find slowest and most frequent
             if all_durations:
                 all_durations.sort(key=lambda x: x[1], reverse=True)
-                system_metrics.slowest_automations = [(aid, dur) for aid, dur in all_durations[:5]]
-            
-            system_metrics.most_common_error = max(all_errors, key=all_errors.get) if all_errors else None
-            
+                system_metrics.slowest_automations = [
+                    (aid, dur) for aid, dur in all_durations[:5]
+                ]
+
+            system_metrics.most_common_error = (
+                max(all_errors, key=all_errors.get) if all_errors else None
+            )
+
             return system_metrics
-            
+
         except Exception as e:
             _LOGGER.error(f"Error getting system metrics: {e}")
             return SystemPerformanceMetrics()
@@ -426,21 +464,32 @@ class PerformanceMetricsService:
         try:
             suggestions = []
             metrics = await self.get_execution_metrics(automation_id)
-            
+
             if metrics.avg_duration_ms > 5000:
-                suggestions.append(f"Automation is slow ({metrics.avg_duration_ms}ms avg). Consider optimizing conditions or actions.")
-            
+                suggestions.append(
+                    f"Automation is slow ({metrics.avg_duration_ms}ms avg). Consider optimizing conditions or actions."
+                )
+
             if metrics.failure_rate > 0.1:
-                suggestions.append(f"High failure rate ({metrics.failure_rate * 100:.1f}%). Review error logs and conditions.")
-            
+                suggestions.append(
+                    f"High failure rate ({metrics.failure_rate * 100:.1f}%). Review error logs and conditions."
+                )
+
             if metrics.failure_rate > 0.2 and metrics.last_error:
-                suggestions.append(f"Common error: '{metrics.last_error}'. Address root cause.")
-            
-            if metrics.total_executions > 100 and metrics.max_duration_ms > metrics.avg_duration_ms * 2:
-                suggestions.append("High variance in execution time. Check for conditional delays or race conditions.")
-            
+                suggestions.append(
+                    f"Common error: '{metrics.last_error}'. Address root cause."
+                )
+
+            if (
+                metrics.total_executions > 100
+                and metrics.max_duration_ms > metrics.avg_duration_ms * 2
+            ):
+                suggestions.append(
+                    "High variance in execution time. Check for conditional delays or race conditions."
+                )
+
             return suggestions
-            
+
         except Exception as e:
             _LOGGER.error(f"Error identifying opportunities: {e}")
             return []
@@ -462,48 +511,52 @@ class PerformanceMetricsService:
         try:
             if automation_id not in self._metrics_storage or not self._metrics_storage:
                 return 50
-            
+
             metrics = self._metrics_storage[automation_id]
             all_metrics = list(self._metrics_storage.values())
-            
+
             if metric == "speed":
                 # Rank by avg duration (lower is better)
-                durations = [m.avg_duration_ms for m in all_metrics if m.avg_duration_ms > 0]
+                durations = [
+                    m.avg_duration_ms for m in all_metrics if m.avg_duration_ms > 0
+                ]
                 if not durations or metrics.avg_duration_ms == 0:
                     return 50
-                
+
                 sorted_durations = sorted(durations)
                 position = sorted_durations.index(metrics.avg_duration_ms)
-                return int((len(sorted_durations) - position) / len(sorted_durations) * 100)
-            
+                return int(
+                    (len(sorted_durations) - position) / len(sorted_durations) * 100
+                )
+
             elif metric == "frequency":
                 # Rank by execution count
                 counts = [m.total_executions for m in all_metrics]
                 if not counts:
                     return 50
-                
+
                 sorted_counts = sorted(counts, reverse=True)
                 if metrics.total_executions not in sorted_counts:
                     return 50
-                
+
                 position = sorted_counts.index(metrics.total_executions)
                 return int((len(sorted_counts) - position) / len(sorted_counts) * 100)
-            
+
             elif metric == "reliability":
                 # Rank by success rate
                 rates = [m.success_rate for m in all_metrics]
                 if not rates:
                     return 50
-                
+
                 sorted_rates = sorted(rates, reverse=True)
                 if metrics.success_rate not in sorted_rates:
                     return 50
-                
+
                 position = sorted_rates.index(metrics.success_rate)
                 return int((len(sorted_rates) - position) / len(sorted_rates) * 100)
-            
+
             return 50
-            
+
         except Exception as e:
             _LOGGER.error(f"Error calculating rank: {e}")
             return 50
@@ -528,20 +581,23 @@ class PerformanceMetricsService:
 
         try:
             import json
-            
+
             if format == "json":
                 data = {}
                 for auto_id in automation_ids:
                     if auto_id in self._metrics_storage:
                         data[auto_id] = self._metrics_storage[auto_id].to_dict()
-                
+
                 return json.dumps(data, indent=2).encode("utf-8")
-            
+
             elif format == "csv":
                 import io
+
                 output = io.StringIO()
-                output.write("automation_id,total_executions,successful,failed,success_rate,avg_duration_ms\n")
-                
+                output.write(
+                    "automation_id,total_executions,successful,failed,success_rate,avg_duration_ms\n"
+                )
+
                 for auto_id in automation_ids:
                     if auto_id in self._metrics_storage:
                         m = self._metrics_storage[auto_id]
@@ -549,14 +605,14 @@ class PerformanceMetricsService:
                             f"{auto_id},{m.total_executions},{m.successful_executions},"
                             f"{m.failed_executions},{m.success_rate:.2f},{m.avg_duration_ms:.0f}\n"
                         )
-                
+
                 return output.getvalue().encode("utf-8")
-            
+
             else:  # pdf
                 # Simple PDF-like text export
                 output = "PERFORMANCE METRICS REPORT\n"
                 output += "=" * 60 + "\n\n"
-                
+
                 for auto_id in automation_ids:
                     if auto_id in self._metrics_storage:
                         m = self._metrics_storage[auto_id]
@@ -565,9 +621,9 @@ class PerformanceMetricsService:
                         output += f"  Success Rate: {m.success_rate * 100:.1f}%\n"
                         output += f"  Avg Duration: {m.avg_duration_ms:.0f}ms\n"
                         output += "\n"
-                
+
                 return output.encode("utf-8")
-            
+
         except Exception as e:
             _LOGGER.error(f"Error exporting metrics: {e}")
             return b""
