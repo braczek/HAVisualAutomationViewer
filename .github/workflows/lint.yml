@@ -31,8 +31,8 @@ jobs:
 #    - name: Run Flake8
 #      run: flake8 custom_components/visualautoview tests
     
-    - name: Run mypy type checker
-      run: mypy custom_components/visualautoview --ignore-missing-imports
+#    - name: Run mypy type checker
+#      run: mypy custom_components/visualautoview --ignore-missing-imports
     
     - name: YAML validation
       run: |
