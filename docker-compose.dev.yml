@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  home-assistant:
+    image: homeassistant/home-assistant:latest
+    container_name: ha-dev
+    ports:
+      - "8123:8123"
+    environment:
+      TZ: UTC
+    volumes:
+      - ./dev/ha-config:/config
+      - ./custom_components/visualautoview:/config/custom_components/visualautoview:ro
+      - ./frontend/dist:/config/www/visualautoview:ro
+    restart: unless-stopped
+
+  api-tester:
+    image: node:18-alpine
+    container_name: api-tester
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "cd frontend && npm install && npm run dev"
+    environment:
+      VITE_API_URL: http://home-assistant:8123/api

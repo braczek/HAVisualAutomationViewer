@@ -1,0 +1,17 @@
+{
+    "domain": "visualautoview",
+    "name": "Visual AutoView - Automation Graph Visualization",
+    "version": "1.0.0",
+    "documentation": "https://github.com/yourusername/visualautoview",
+    "issue_tracker": "https://github.com/yourusername/visualautoview/issues",
+    "discussions": "https://github.com/yourusername/visualautoview/discussions",
+    "requirements": [],
+    "dependencies": [],
+    "codeowners": [
+        "@yourusername"
+    ],
+    "iot_class": "calculated",
+    "config_flow": false,
+    "integration_type": "system",
+    "homeassistant": "2023.11.0"
+}

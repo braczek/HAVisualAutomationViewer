@@ -1,0 +1,17 @@
+# Development Requirements
+
+# Testing
+pytest>=9.0.0
+pytest-cov>=4.0.0
+
+# Code Quality
+black>=23.0.0
+flake8>=6.0.0
+isort>=5.13.0
+mypy>=1.0.0
+
+# YAML Support (for testing YAML parsing)
+PyYAML>=6.0
+
+# Home Assistant (optional, for integration development)
+# homeassistant>=2023.11.0

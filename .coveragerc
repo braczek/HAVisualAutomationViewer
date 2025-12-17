@@ -1,0 +1,22 @@
+[run]
+branch = True
+source = custom_components/visualautoview
+omit =
+    */tests/*
+    */__pycache__/*
+    */venv/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+
+precision = 2
+skip_covered = False
+
+[html]
+directory = htmlcov

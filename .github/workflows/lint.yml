@@ -1,0 +1,46 @@
+name: Lint & Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-dev.txt
+    
+    - name: Run Black formatter check
+      run: black --check custom_components/visualautoview tests
+    
+    - name: Run isort import check
+      run: isort --check-only custom_components/visualautoview tests
+    
+    - name: Run Flake8
+      run: flake8 custom_components/visualautoview tests
+    
+    - name: Run mypy type checker
+      run: mypy custom_components/visualautoview --ignore-missing-imports
+    
+    - name: YAML validation
+      run: |
+        python -c "
+        import yaml
+        import glob
+        for yaml_file in glob.glob('custom_components/visualautoview/**/*.yaml', recursive=True):
+            with open(yaml_file) as f:
+                yaml.safe_load(f)
+        print('All YAML files valid')
+        "

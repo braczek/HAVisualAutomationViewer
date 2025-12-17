@@ -1,0 +1,83 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-dev.txt
+    
+    - name: Validate integration structure
+      run: |
+        python -c "
+        import json
+        import os
+        manifest_path = 'custom_components/visualautoview/manifest.json'
+        with open(manifest_path) as f:
+            manifest = json.load(f)
+        required_fields = ['domain', 'name', 'version', 'documentation']
+        for field in required_fields:
+            assert field in manifest, f'Missing {field} in manifest'
+        print(f'✓ Integration manifest valid (v{manifest[\"version\"]})')
+        "
+    
+    - name: Create backend artifact
+      run: |
+        mkdir -p artifacts
+        cd custom_components && zip -r ../artifacts/visualautoview-backend-${{ github.sha }}.zip visualautoview -x "*/.*" && cd ..
+    
+    - name: Upload backend artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-artifacts
+        path: artifacts/
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+    
+    - name: Create frontend artifact
+      run: |
+        mkdir -p artifacts
+        cd frontend/dist && zip -r ../../artifacts/visualautoview-frontend-${{ github.sha }}.zip . && cd ../..
+    
+    - name: Upload frontend artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-artifacts
+        path: artifacts/

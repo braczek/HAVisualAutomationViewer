@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Build artifacts
+      run: |
+        mkdir -p release
+        cp -r custom_components/visualautoview release/
+        
+        cd frontend
+        npm ci
+        npm run build
+        mkdir -p ../release/visualautoview/frontend_dist
+        cp -r dist/* ../release/visualautoview/frontend_dist/
+        cd ..
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        git log --oneline --no-decorate $(git describe --tags --abbrev=0 HEAD^)..HEAD > changelog.txt || echo "Initial release" > changelog.txt
+    
+    - name: Create release archive
+      run: |
+        VERSION=${{ steps.changelog.outputs.version }}
+        cd release && zip -r ../visualautoview-$VERSION.zip visualautoview && cd ..
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: visualautoview-${{ steps.changelog.outputs.version }}.zip
+        body_path: changelog.txt
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
