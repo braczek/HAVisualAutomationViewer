@@ -7,9 +7,13 @@ from datetime import datetime
 from typing import Any, Callable, Dict, Optional
 
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.const import (HTTP_BAD_REQUEST, HTTP_CREATED,
-                                 HTTP_INTERNAL_SERVER_ERROR, HTTP_NOT_FOUND,
-                                 HTTP_OK)
+from homeassistant.const import (
+    HTTP_BAD_REQUEST,
+    HTTP_CREATED,
+    HTTP_INTERNAL_SERVER_ERROR,
+    HTTP_NOT_FOUND,
+    HTTP_OK,
+)
 from homeassistant.core import HomeAssistant
 
 from .models import ApiResponse, ErrorResponse, SerializationHelper

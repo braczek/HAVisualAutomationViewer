@@ -10,14 +10,24 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 try:
-    from .const import (COLORS, COMP_TYPE_ACTION, COMP_TYPE_CONDITION,
-                        COMP_TYPE_METADATA, COMP_TYPE_TRIGGER,
-                        DEFAULT_NODE_ID_PREFIX)
+    from .const import (
+        COLORS,
+        COMP_TYPE_ACTION,
+        COMP_TYPE_CONDITION,
+        COMP_TYPE_METADATA,
+        COMP_TYPE_TRIGGER,
+        DEFAULT_NODE_ID_PREFIX,
+    )
 except ImportError:
     # Fallback for testing without parent package
-    from const import (COLORS, COMP_TYPE_ACTION, COMP_TYPE_CONDITION,
-                       COMP_TYPE_METADATA, COMP_TYPE_TRIGGER,
-                       DEFAULT_NODE_ID_PREFIX)
+    from const import (
+        COLORS,
+        COMP_TYPE_ACTION,
+        COMP_TYPE_CONDITION,
+        COMP_TYPE_METADATA,
+        COMP_TYPE_TRIGGER,
+        DEFAULT_NODE_ID_PREFIX,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -3,8 +3,12 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from homeassistant.const import (HTTP_BAD_REQUEST, HTTP_INTERNAL_SERVER_ERROR,
-                                 HTTP_NOT_FOUND, HTTP_OK)
+from homeassistant.const import (
+    HTTP_BAD_REQUEST,
+    HTTP_INTERNAL_SERVER_ERROR,
+    HTTP_NOT_FOUND,
+    HTTP_OK,
+)
 from homeassistant.core import HomeAssistant
 
 from .base import ApiErrorHandler, RestApiEndpoint
