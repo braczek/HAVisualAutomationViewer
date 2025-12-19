@@ -49,11 +49,18 @@ jobs:
       run: |
         VERSION=${{ steps.changelog.outputs.version }}
         cd release && zip -r ../visualautoview-$VERSION.zip visualautoview && cd ..
+        # Also create a simple visualautoview.zip for HACS
+        cd release && zip -r ../visualautoview.zip visualautoview && cd ..
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        files: visualautoview-${{ steps.changelog.outputs.version }}.zip
+        files: |
+          visualautoview-${{ steps.changelog.outputs.version }}.zip
+          visualautoview.zip
+          install.sh
+          install.ps1
+          INSTALLATION.md
         body_path: changelog.txt
         draft: false
         prerelease: false

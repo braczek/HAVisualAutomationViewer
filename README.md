@@ -10,11 +10,25 @@
 
 This repository contains all necessary files for the Visual AutoView integration. Here's what each document covers:
 
-### 🚀 Getting Started
-1. **[QUICK_START.md](QUICK_START.md)** ← **START HERE**
-   - Installation instructions
-   - Project structure overview
-   - Frontend development setup
+### 🚀 Installation & Setup
+1. **[INSTALL_QUICK.md](INSTALL_QUICK.md)** ← **FASTEST START**
+   - One-line installation commands
+   - Quick copy-paste installers
+   
+2. **[AUTOMATED_INSTALL.md](AUTOMATED_INSTALL.md)** ← **RECOMMENDED**
+   - Complete automation guide
+   - All installation methods explained
+   - Comparison and troubleshooting
+   
+3. **[INSTALLATION.md](INSTALLATION.md)**
+   - Detailed installation instructions
+   - Manual installation steps
+   - Platform-specific guides
+
+### 🏁 Getting Started
+1. **[QUICK_START.md](QUICK_START.md)**
+   - Project overview
+   - Development setup
    - API endpoint reference
    - Troubleshooting guide
 
@@ -87,17 +101,55 @@ Total:          5,081+ lines of production code
 
 ### Installation
 
-#### Option 1: HACS (Recommended)
+#### ⚡ One-Line Install (Fastest)
+
+**Windows PowerShell**:
+```powershell
+irm https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.ps1 | iex
+```
+
+**Linux/macOS**:
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.sh)
+```
+
+**[→ More installation options](INSTALL_QUICK.md)**
+
+---
+
+#### Option 1: Automated Installation (Easiest) ⚡
+
+**Windows (PowerShell)**:
+```powershell
+cd path\to\VisualAutoView
+.\install.ps1
+```
+
+**Linux/macOS (Bash)**:
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+The script will:
+- ✓ Auto-detect your Home Assistant directory
+- ✓ Install all required files
+- ✓ Verify the installation
+- ✓ Guide you through the setup
+
+**[→ View detailed installation guide](INSTALLATION.md)**
+
+#### Option 2: HACS (Recommended for Updates)
 1. Open HACS in your Home Assistant
 2. Go to "Integrations"
 3. Click the three dots in the top right
 4. Select "Custom repositories"
-5. Add this repository URL
+5. Add repository URL: `https://github.com/braczek/HAVisualAutomationViewer`
 6. Search for "Visual AutoView"
 7. Click "Install"
 8. Restart Home Assistant
 
-#### Option 2: Manual Installation (Home Assistant OS)
+#### Option 3: Manual Installation
 1. Access your Home Assistant configuration folder via:
    - **Samba share**: `\\your-ha-ip\config`
    - **SSH/Terminal addon**: Navigate to `/config`
