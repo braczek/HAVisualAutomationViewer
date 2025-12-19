@@ -20,6 +20,7 @@ interface Automation {
 @customElement('vav-dashboard')
 export class Dashboard extends LitElement {
   @property({ type: Object }) config: any = {};
+  @property({ type: String }) preselectedAutomationId = '';
   @state() automations: Automation[] = [];
   @state() selectedAutomation: Automation | null = null;
   @state() selectedAutomationDetails: any = null;
@@ -436,7 +437,24 @@ export class Dashboard extends LitElement {
         
         console.log('Loaded automations:', this.automations);
         
-        if (this.automations.length > 0) {
+        // Check if there's a preselected automation from URL parameter
+        if (this.preselectedAutomationId && this.automations.length > 0) {
+          const preselected = this.automations.find(
+            a => a.entity_id === this.preselectedAutomationId || 
+                 a.entity_id === `automation.${this.preselectedAutomationId}` ||
+                 a.entity_id.endsWith(`.${this.preselectedAutomationId}`)
+          );
+          
+          if (preselected) {
+            this.selectedAutomation = preselected;
+            console.log('Auto-selected automation from URL:', this.preselectedAutomationId);
+          } else {
+            // If not found, select first one
+            this.selectedAutomation = this.automations[0];
+            console.warn('Automation not found:', this.preselectedAutomationId, 'Selecting first instead');
+          }
+        } else if (this.automations.length > 0) {
+          // No preselection, select first
           this.selectedAutomation = this.automations[0];
         }
       } else {

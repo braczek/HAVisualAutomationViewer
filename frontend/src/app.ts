@@ -14,6 +14,30 @@ export class VisualAutoViewApp extends LitElement {
   @state() currentView = 'dashboard';
   @state() selectedAutomation = '';
 
+  connectedCallback() {
+    super.connectedCallback();
+    this.parseUrlParameters();
+  }
+
+  private parseUrlParameters() {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Check for automation parameter
+    const automationParam = params.get('automation');
+    if (automationParam) {
+      this.selectedAutomation = automationParam;
+      // Switch to dashboard view to show the graph
+      this.currentView = 'dashboard';
+      console.log('Auto-selected automation from URL:', automationParam);
+    }
+    
+    // Check for view parameter
+    const viewParam = params.get('view');
+    if (viewParam === 'analytics' || viewParam === 'dashboard') {
+      this.currentView = viewParam;
+    }
+  }
+
   static styles = css`
     :host {
       display: block;
@@ -176,6 +200,7 @@ export class VisualAutoViewApp extends LitElement {
         <div class="content">
           <vav-dashboard
             class="${this.currentView === 'dashboard' ? 'active' : ''}"
+            .preselectedAutomationId=${this.selectedAutomation}
             @compare-requested=${this.onCompareRequested}
           ></vav-dashboard>
 

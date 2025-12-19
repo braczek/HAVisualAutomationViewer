@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual AutoView - Bookmarklet Generator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .bookmarklet {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        .bookmarklet h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        .drag-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            margin: 10px 0;
+            cursor: move;
+            transition: background 0.3s;
+        }
+        .drag-button:hover {
+            background: #1976D2;
+        }
+        .instructions {
+            background: #FFF9C4;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .instructions h4 {
+            margin-top: 0;
+            color: #F57C00;
+        }
+        .code {
+            background: #263238;
+            color: #AEDD94;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .feature {
+            margin: 15px 0;
+            padding: 15px;
+            background: #E3F2FD;
+            border-radius: 4px;
+        }
+        .feature h4 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+        .arrow {
+            color: #2196F3;
+            font-size: 20px;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Visual AutoView - Quick Access Tools</h1>
+        <div class="subtitle">Easy ways to view your Home Assistant automation graphs</div>
+
+        <div class="instructions">
+            <h4>🎯 How to Use Bookmarklets</h4>
+            <ol>
+                <li><strong>Drag the button below</strong> to your browser's bookmarks bar</li>
+                <li>When viewing/editing an automation in Home Assistant, <strong>click the bookmark</strong></li>
+                <li>The graph will open in a new tab automatically!</li>
+            </ol>
+        </div>
+
+        <div class="bookmarklet">
+            <h3>View Automation Graph</h3>
+            <p>Click this while viewing any automation to see its graph:</p>
+            <a href="javascript:(function(){const match=window.location.href.match(/\/automation\/edit\/(\d+)/);if(match){window.open(`/local/visualautoview/index.html?automation=${match[1]}`,'_blank')}else{alert('Not on an automation edit page')}})();" class="drag-button">
+                📊 View Graph
+            </a>
+            <p style="color: #666; font-size: 13px; margin-top: 15px;">
+                <strong>Drag this button to your bookmarks bar!</strong><br>
+                Works when viewing automations at: <code>http://192.168.1.7:8123/config/automation/edit/...</code>
+            </p>
+        </div>
+
+        <div class="bookmarklet">
+            <h3>View Graph in Same Tab</h3>
+            <p>Opens the graph in the same tab instead of a new one:</p>
+            <a href="javascript:(function(){const match=window.location.href.match(/\/automation\/edit\/(\d+)/);if(match){window.location.href=`/local/visualautoview/index.html?automation=${match[1]}`}else{alert('Not on an automation edit page')}})();" class="drag-button">
+                📊 View Graph (Same Tab)
+            </a>
+        </div>
+
+        <div class="feature">
+            <h4>🔗 Direct URL Access</h4>
+            <p>You can also access graphs directly using URLs with automation IDs:</p>
+            <div class="code">
+# Using automation ID number
+http://192.168.1.7:8123/local/visualautoview/index.html?automation=1765388366505
+
+# Using entity name
+http://192.168.1.7:8123/local/visualautoview/index.html?automation=bedroom_lights
+
+# Open in analytics view
+http://192.168.1.7:8123/local/visualautoview/index.html?automation=bedroom_lights&view=analytics
+            </div>
+        </div>
+
+        <div class="feature">
+            <h4>📍 Finding Your Automation ID</h4>
+            <p>When editing an automation, look at the URL:</p>
+            <div class="code">
+http://192.168.1.7:8123/config/automation/edit/1765388366505
+                                                   └─────────┘
+                                                  This is your ID
+            </div>
+        </div>
+
+        <div class="feature">
+            <h4>⚙️ Add to Home Assistant Sidebar</h4>
+            <p>Add this to your <code>configuration.yaml</code> to get a sidebar menu item:</p>
+            <div class="code">
+panel_iframe:
+  visualautoview:
+    title: "Automation Graph"
+    icon: mdi:graph
+    url: "/local/visualautoview/index.html"
+    require_admin: false
+            </div>
+            <p style="margin-top: 15px;">After adding, restart Home Assistant and you'll see "Automation Graph" in your sidebar!</p>
+        </div>
+
+        <div class="feature">
+            <h4>🚀 How It Works</h4>
+            <p>When you use the bookmarklet or URL parameters:</p>
+            <ol>
+                <li>The automation ID is extracted from the URL or parameter</li>
+                <li>Visual AutoView opens and automatically loads that automation</li>
+                <li>The graph is displayed immediately - no need to search!</li>
+            </ol>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #E8F5E9; border-radius: 4px; border-left: 4px solid #4CAF50;">
+            <strong>✅ Features Included:</strong>
+            <ul style="margin: 10px 0;">
+                <li>Nested structure visualization (choose, if-then, parallel, repeat)</li>
+                <li>Detailed action labels (service, target, parameters)</li>
+                <li>Enhanced trigger descriptions</li>
+                <li>Condition details with values</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; color: #666; font-size: 13px;">
+            Visual AutoView v1.0.0 | <a href="https://github.com/braczek/HAVisualAutomationViewer" style="color: #2196F3;">Documentation</a>
+        </div>
+    </div>
+</body>
+</html>

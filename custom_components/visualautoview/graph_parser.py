@@ -914,8 +914,9 @@ class AutomationGraphParser:
         if "service" in action:
             service = action.get("service", "unknown")
             
-            # Extract target information
+            # Extract target and data information
             target_info = ""
+            data_info = ""
             target = action.get("target", {})
             data = action.get("data", {})
             
@@ -932,42 +933,139 @@ class AutomationGraphParser:
             if entity_id:
                 if isinstance(entity_id, list):
                     if len(entity_id) == 1:
-                        target_info = f"\n{entity_id[0]}"
+                        target_info = f"{entity_id[0]}"
                     elif len(entity_id) <= 3:
-                        target_info = f"\n{', '.join(entity_id)}"
+                        target_info = f"{', '.join(entity_id)}"
                     else:
-                        target_info = f"\n{entity_id[0]} +{len(entity_id)-1} more"
+                        target_info = f"{entity_id[0]} +{len(entity_id)-1} more"
                 else:
-                    target_info = f"\n{entity_id}"
+                    target_info = f"{entity_id}"
             
             # Check for area or device targets
             elif isinstance(target, dict):
                 if "area_id" in target:
                     area = target.get("area_id")
                     if isinstance(area, list):
-                        target_info = f"\nArea: {', '.join(area)}"
+                        target_info = f"Area: {', '.join(area)}"
                     else:
-                        target_info = f"\nArea: {area}"
+                        target_info = f"Area: {area}"
                 elif "device_id" in target:
                     device = target.get("device_id")
                     if isinstance(device, list):
-                        target_info = f"\n{len(device)} devices"
+                        target_info = f"{len(device)} devices"
                     else:
-                        target_info = f"\nDevice: {device}"
+                        target_info = f"Device: {device}"
             
-            # Add data hints for common services
-            if isinstance(data, dict) and not target_info:
+            # Extract and format data parameters
+            data_parts = []
+            if isinstance(data, dict):
+                # Light-specific parameters
+                if "brightness" in data:
+                    brightness = data["brightness"]
+                    if isinstance(brightness, int):
+                        pct = int((brightness / 255) * 100)
+                        data_parts.append(f"Brightness: {pct}%")
+                    else:
+                        data_parts.append(f"Brightness: {brightness}")
+                
+                if "brightness_pct" in data:
+                    data_parts.append(f"Brightness: {data['brightness_pct']}%")
+                
+                if "rgb_color" in data:
+                    rgb = data["rgb_color"]
+                    if isinstance(rgb, list) and len(rgb) == 3:
+                        data_parts.append(f"RGB: ({rgb[0]},{rgb[1]},{rgb[2]})")
+                    else:
+                        data_parts.append(f"RGB: {rgb}")
+                
+                if "kelvin" in data:
+                    data_parts.append(f"Color temp: {data['kelvin']}K")
+                
+                if "color_temp" in data:
+                    data_parts.append(f"Color temp: {data['color_temp']}")
+                
+                if "color_name" in data:
+                    data_parts.append(f"Color: {data['color_name']}")
+                
+                # Climate parameters
+                if "temperature" in data:
+                    data_parts.append(f"Temp: {data['temperature']}°")
+                
+                if "target_temp_high" in data and "target_temp_low" in data:
+                    data_parts.append(f"Range: {data['target_temp_low']}-{data['target_temp_high']}°")
+                elif "target_temp_high" in data:
+                    data_parts.append(f"Max: {data['target_temp_high']}°")
+                elif "target_temp_low" in data:
+                    data_parts.append(f"Min: {data['target_temp_low']}°")
+                
+                if "hvac_mode" in data:
+                    data_parts.append(f"Mode: {data['hvac_mode']}")
+                
+                if "fan_mode" in data:
+                    data_parts.append(f"Fan: {data['fan_mode']}")
+                
+                # Cover parameters
+                if "position" in data:
+                    data_parts.append(f"Position: {data['position']}%")
+                
+                if "tilt_position" in data:
+                    data_parts.append(f"Tilt: {data['tilt_position']}%")
+                
+                # Media player parameters
+                if "media_content_id" in data:
+                    content = str(data["media_content_id"])
+                    if len(content) > 30:
+                        content = content[:30] + "..."
+                    data_parts.append(f"Media: {content}")
+                
+                if "volume_level" in data:
+                    vol = int(float(data["volume_level"]) * 100)
+                    data_parts.append(f"Volume: {vol}%")
+                
+                # Notification parameters
                 if "message" in data:
                     msg = str(data["message"])
-                    if len(msg) > 30:
-                        msg = msg[:30] + "..."
-                    target_info = f"\n\"{msg}\""
-                elif "brightness" in data:
-                    target_info = f"\nBrightness: {data['brightness']}"
-                elif "temperature" in data or "rgb_color" in data or "kelvin" in data:
-                    target_info = "\n(color/temp)"
+                    if len(msg) > 40:
+                        msg = msg[:40] + "..."
+                    data_parts.append(f"Message: \"{msg}\"")
+                
+                if "title" in data:
+                    title = str(data["title"])
+                    if len(title) > 30:
+                        title = title[:30] + "..."
+                    data_parts.append(f"Title: \"{title}\"")
+                
+                # Input parameters
+                if "value" in data and "message" not in data:
+                    data_parts.append(f"Value: {data['value']}")
+                
+                if "option" in data:
+                    data_parts.append(f"Option: {data['option']}")
+                
+                # Timer/duration parameters
+                if "duration" in data and "delay" not in action:
+                    data_parts.append(f"Duration: {data['duration']}")
+                
+                # Generic state
+                if "state" in data:
+                    data_parts.append(f"State: {data['state']}")
             
-            return f"{service}{target_info}"
+            # Build the full label
+            label_parts = [service]
+            if target_info:
+                label_parts.append(target_info)
+            if data_parts:
+                # Limit to 3 most important data parameters
+                data_info = "\n".join(data_parts[:3])
+                if len(data_parts) > 3:
+                    data_info += f"\n+{len(data_parts)-3} more params"
+            
+            if data_info:
+                return f"{label_parts[0]}\n{label_parts[1] if len(label_parts) > 1 else ''}\n{data_info}".strip()
+            elif len(label_parts) > 1:
+                return f"{label_parts[0]}\n{label_parts[1]}"
+            else:
+                return label_parts[0]
         
         # Delay
         elif "delay" in action:
