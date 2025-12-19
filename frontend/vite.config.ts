@@ -10,7 +10,17 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        main: 'index.html'
+        main: 'index.html',
+        panel: 'src/panel.ts' // Build panel as separate entry
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          // Panel should be named specifically for HA to find it
+          if (chunkInfo.name === 'panel') {
+            return 'visualautoview-panel.js';
+          }
+          return '[name]-[hash].js';
+        }
       }
     }
   },

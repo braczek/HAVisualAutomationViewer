@@ -5,7 +5,12 @@
 This integration requires deploying both backend (Python) and frontend (TypeScript/JavaScript) components to a Home Assistant instance.
 
 **Target Server:** `\\192.168.1.7\config\`  
-**Web Access:** `http://192.168.1.7:8123/local/visualautoview/index.html`
+**Panel Access (Recommended):** `http://192.168.1.7:8123/visualautoview` (sidebar integration)  
+**Legacy iframe Access:** `http://192.168.1.7:8123/local/visualautoview/index.html`
+
+## Integration Type
+
+As of the latest update, VisualAutoView runs as a **native Home Assistant panel** with full theme integration and direct access to HA's internal APIs. The panel appears in HA's sidebar and provides a native experience with no iframe restrictions.
 
 ---
 
@@ -52,25 +57,28 @@ cd C:\Repositories\HA\VisualAutoView\frontend
 npm run build
 ```
 
-Expected output: Production bundle in `dist/` directory (~700KB)
+Expected output: Production bundle in `dist/` directory with:
+- `index.html` (~3KB) - Legacy iframe entry point
+- `visualautoview-panel.js` (~5KB) - Native panel integration
+- `main-{hash}.js` (~8KB) - Application entry
+- `assets/analytics-{hash}.js` (~714KB) - Main application bundle
+
+**Build creates TWO entry points:**
+1. **Panel integration** (`visualautoview-panel.js`) - For native HA sidebar (recommended)
+2. **Standalone app** (`index.html`) - For legacy iframe access
 
 ### 2. Clean Old Builds (Important!)
 
 Remove old JavaScript bundles before deploying new ones:
 
 ```powershell
-# Get current build hash from index.html
-$indexContent = Get-Content "C:\Repositories\HA\VisualAutoView\frontend\dist\index.html" -Raw
-if ($indexContent -match 'main-(\w+)\.js') {
-    $currentHash = $matches[1]
-    Write-Host "Current build: main-$currentHash.js" -ForegroundColor Green
-    
-    # Remove all old builds from destination
-    Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js" -Exclude "main-$currentHash.js"
-    Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js.map" -Exclude "main-$currentHash.js.map"
-    
-    Write-Host "✓ Old builds cleaned" -ForegroundColor Green
-}
+# Clean old bundles
+Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js.map" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\main-*.js" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\visualautoview-panel.js" -Force -ErrorAction SilentlyContinue
+
+Write-Host "✓ Old builds cleaned" -ForegroundColor Green
 ```
 
 ### 3. Deploy Frontend Files
@@ -89,9 +97,11 @@ Get-ChildItem "\\192.168.1.7\config\www\visualautoview\assets\" | Select-Object 
 ```
 
 Expected files:
-- `index.html` (~2KB)
-- `assets/main-{hash}.js` (~700KB)
-- `assets/main-{hash}.js.map` (~2.2MB)
+- `index.html` (~3KB) - Legacy iframe entry
+- `visualautoview-panel.js` (~5KB) - **Panel integration (required for sidebar)**
+- `main-{hash}.js` (~8KB) - Application entry
+- `assets/analytics-{hash}.js` (~714KB) - Main bundle
+- `assets/analytics-{hash}.js.map` (~2.3MB) - Source map
 
 ---
 
@@ -104,7 +114,7 @@ Copy-Item -Path "C:\Repositories\HA\VisualAutoView\custom_components\visualautov
 
 ### Frontend Only (Build + Clean + Deploy)
 ```powershell
-cd C:\Repositories\HA\VisualAutoView\frontend; npm run build; $indexContent = Get-Content "dist\index.html" -Raw; if ($indexContent -match 'main-(\w+)\.js') { $currentHash = $matches[1]; Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js" -Exclude "main-$currentHash.js"; Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js.map" -Exclude "main-$currentHash.js.map" }; Copy-Item -Path "dist\*" -Destination "\\192.168.1.7\config\www\visualautoview\" -Recurse -Force
+cd C:\Repositories\HA\VisualAutoView\frontend; npm run build; Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js" -Force -ErrorAction SilentlyContinue; Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js.map" -Force -ErrorAction SilentlyContinue; Remove-Item "\\192.168.1.7\config\www\visualautoview\main-*.js" -Force -ErrorAction SilentlyContinue; Remove-Item "\\192.168.1.7\config\www\visualautoview\visualautoview-panel.js" -Force -ErrorAction SilentlyContinue; Copy-Item -Path "dist\*" -Destination "\\192.168.1.7\config\www\visualautoview\" -Recurse -Force
 ```
 
 ### Full Deployment (Backend + Frontend)
@@ -115,12 +125,10 @@ Copy-Item -Path "C:\Repositories\HA\VisualAutoView\custom_components\visualautov
 # Build and deploy frontend
 cd C:\Repositories\HA\VisualAutoView\frontend
 npm run build
-$indexContent = Get-Content "dist\index.html" -Raw
-if ($indexContent -match 'main-(\w+)\.js') { 
-    $currentHash = $matches[1]
-    Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js" -Exclude "main-$currentHash.js"
-    Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\main-*.js.map" -Exclude "main-$currentHash.js.map"
-}
+Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\assets\*.js.map" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\main-*.js" -Force -ErrorAction SilentlyContinue
+Remove-Item "\\192.168.1.7\config\www\visualautoview\visualautoview-panel.js" -Force -ErrorAction SilentlyContinue
 Copy-Item -Path "dist\*" -Destination "\\192.168.1.7\config\www\visualautoview\" -Recurse -Force
 
 Write-Host "✓ Deployment complete! Restart Home Assistant to apply changes." -ForegroundColor Green
@@ -140,6 +148,12 @@ Hard refresh to load new JavaScript bundle:
 - **Safari:** `Cmd + Shift + R`
 
 ### 3. Access Application
+
+**Recommended: Native Panel (Sidebar)**
+- Look for "AutoView" in the Home Assistant sidebar
+- Or navigate to: `http://192.168.1.7:8123/visualautoview`
+
+**Legacy: iframe Mode**
 ```
 http://192.168.1.7:8123/local/visualautoview/index.html
 ```
@@ -152,14 +166,16 @@ http://192.168.1.7:8123/api/visualautoview/health
 ```
 Expected: `{"status": "ok", "version": "1.0.0"}`
 
-**Home Assistant Logs:**
-Look for: "Visual AutoView API setup complete" and "Registered 45 endpoints"
+**Panel Registration Check:**
+Home Assistant Logs should show:
+- "Visual AutoView: Panel registered in sidebar"
+- "Visual AutoView API setup complete"
 
 **Frontend Check:**
-- Graph should display correctly
+- Panel appears in sidebar with graph icon
+- Theme matches HA's current theme (light/dark)
 - No console errors (F12 → Console)
-- Nested actions should expand properly
-- Trigger labels should be descriptive
+- Graph displays correctly with full HA theme integration
 
 ---
 
@@ -231,11 +247,15 @@ services/            - Business logic services
 
 ### Frontend Files (www/visualautoview/)
 ```
-index.html           - Entry point (2KB)
+index.html                    - Legacy iframe entry point (3KB)
+visualautoview-panel.js       - Native panel integration (5KB) ⭐ NEW
+main-{hash}.js                - Application entry (8KB)
 assets/
-  main-{hash}.js     - Application bundle (700KB)
-  main-{hash}.js.map - Source map (2.2MB)
+  analytics-{hash}.js         - Main application bundle (714KB)
+  analytics-{hash}.js.map     - Source map (2.3MB)
 ```
+
+**Key File:** `visualautoview-panel.js` registers the custom panel and provides full HA integration
 
 ---
 

@@ -185,13 +185,19 @@ if (-not $SkipRestart) {
     }
 }
 
-Write-Info "2. Go to Configuration -> Integrations in Home Assistant"
-Write-Info "3. Click '+ Add Integration'"
-Write-Info "4. Search for 'Visual AutoView'"
-Write-Info "5. Complete the setup"
+Write-Info "2. After restart, look for 'AutoView' in your Home Assistant sidebar"
+Write-Info "3. Or access directly at: http://your-ha-ip:8123/visualautoview"
+Write-Info "`nThe integration includes:"
+Write-Info "  ✅ Native panel in sidebar (no iframe restrictions)"
+Write-Info "  ✅ Automatic theme matching (light/dark mode)"
+Write-Info "  ✅ Direct access to HA's internal APIs"
 
 if ($DevMode) {
-    Write-Info "`n6. Access the frontend at: http://your-ha-ip:8123/local/visualautoview/"
+    Write-Info "`n4. Build and deploy frontend:"
+    Write-Info "   cd frontend"
+    Write-Info "   npm run build"
+    Write-Info "   Copy dist/* to /config/www/visualautoview/"
+    Write-Info "`n5. Legacy iframe access: http://your-ha-ip:8123/local/visualautoview/"
 }
 
 Write-Success "`nThank you for installing Visual AutoView!"

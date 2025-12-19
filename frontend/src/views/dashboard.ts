@@ -19,10 +19,12 @@ interface Automation {
 
 @customElement('vav-dashboard')
 export class Dashboard extends LitElement {
+  @property({ attribute: false }) hass: any; // Home Assistant object
   @property({ type: Object }) config: any = {};
   @property({ type: String }) preselectedAutomationId = '';
+  @property({ type: String }) selectedAutomation = '';
   @state() automations: Automation[] = [];
-  @state() selectedAutomation: Automation | null = null;
+  @state() selectedAutomationObj: Automation | null = null;
   @state() selectedAutomationDetails: any = null;
   @state() loading = false;
   @state() detailsLoading = false;

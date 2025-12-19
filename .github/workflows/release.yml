@@ -36,6 +36,8 @@ jobs:
         npm run build
         mkdir -p ../release/visualautoview/frontend_dist
         cp -r dist/* ../release/visualautoview/frontend_dist/
+        # Verify panel integration file was built
+        ls -la dist/visualautoview-panel.js || echo "Warning: Panel file not found"
         cd ..
     
     - name: Generate changelog

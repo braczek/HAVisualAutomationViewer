@@ -161,16 +161,11 @@ The script will:
    ```yaml
    visualautoview:
    ```
-6. **Optional: Add sidebar panel** - Add this separately in `configuration.yaml`:
-   ```yaml
-   panel_iframe:
-     visualautoview:
-       title: "Visual AutoView"
-       icon: mdi:graph
-       url: "/local/visualautoview/index.html"
-   ```
-7. Restart Home Assistant
-8. After restart, the API will be available at: `http://your-ha-ip:8123/api/visualautoview/`
+6. Restart Home Assistant
+7. After restart:
+   - The panel "AutoView" will appear automatically in your sidebar
+   - The API will be available at: `http://your-ha-ip:8123/api/visualautoview/`
+   - Access the panel at: `http://your-ha-ip:8123/visualautoview`
 
 #### Option 3: Manual Installation (Home Assistant Core)
 ```bash
@@ -182,7 +177,7 @@ cp -r custom_components/visualautoview ~/.homeassistant/custom_components/
 
 ### Accessing Visual AutoView
 
-After installation and restart, follow these steps to access the Visual AutoView interface:
+After installation and restart, the interface is automatically available in your Home Assistant sidebar!
 
 #### Step 1: Build the Frontend
 ```bash
@@ -198,28 +193,26 @@ cp -r dist \\192.168.1.7\config\www\visualautoview
 ```
 
 #### Step 3: Restart Home Assistant
-After copying, restart Home Assistant one more time.
+After copying, restart Home Assistant.
 
 #### Step 4: Access the Interface
 
-**Option A: Add to Sidebar (Recommended)**
-1. Add this to your `configuration.yaml` (at the root level, NOT inside visualautoview):
-   ```yaml
-   # Visual AutoView integration
-   visualautoview:
-   
-   # Sidebar panel (separate section)
-   panel_iframe:
-     visualautoview:
-       title: "Visual AutoView"
-       icon: mdi:graph
-       url: "/local/visualautoview/index.html"
-   ```
-2. Restart Home Assistant
-3. Look for "Visual AutoView" in your sidebar
+**Native Panel (Automatic)**
+- Look for **"AutoView"** in your Home Assistant sidebar (with graph icon)
+- Or navigate to: http://192.168.1.7:8123/visualautoview
+- Full HA theme integration (matches light/dark mode automatically)
+- Direct access to HA's internal APIs
 
-**Option B: Direct Access**
-- Open in browser: http://192.168.1.7:8123/local/visualautoview/index.html
+**Legacy iframe Mode (Optional)**
+- Direct URL: http://192.168.1.7:8123/local/visualautoview/index.html
+- Limited theme access and cross-origin restrictions
+
+**Benefits of Native Panel:**
+- ✅ Automatic theme matching (light/dark mode)
+- ✅ Direct access to `hass` object (states, services, WebSocket)
+- ✅ No iframe restrictions
+- ✅ Better performance
+- ✅ Native HA look and feel
 
 **API Endpoints:**
 - Base URL: http://192.168.1.7:8123/api/visualautoview/

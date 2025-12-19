@@ -31,6 +31,7 @@ interface EntityRelationship {
 
 @customElement('vav-analytics')
 export class AnalyticsPanel extends LitElement {
+  @property({ attribute: false }) hass: any; // Home Assistant object
   @property({ type: String }) selectedAutomation = '';
   @state() activeTab = 'performance';
   @state() performanceMetrics: PerformanceMetric | null = null;

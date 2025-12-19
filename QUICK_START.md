@@ -2,13 +2,15 @@
 
 ## Project Overview
 
-Visual AutoView is a Home Assistant integration that provides advanced visualization and analysis of home automations. It includes:
+Visual AutoView is a Home Assistant integration that provides advanced visualization and analysis of home automations as a **native panel** in your sidebar. It includes:
 - Interactive graph visualization of automation structure
 - Advanced search and filtering
 - Automation comparison and similarity analysis
 - Entity relationship mapping
 - Dependency graph analysis
 - Performance metrics and recommendations
+- **Full HA theme integration** (automatically matches light/dark mode)
+- **Direct access to HA APIs** (states, services, WebSocket)
 
 **Status**: ✅ 100% Complete and Production Ready
 
@@ -32,6 +34,7 @@ VisualAutoView/
 │   └── __init__.py                       # Integration setup
 ├── frontend/                             # Web Frontend
 │   ├── src/
+│   │   ├── panel.ts                      # Native HA panel integration
 │   │   ├── app.ts                        # Main application (280 lines)
 │   │   ├── main.ts                       # Entry point
 │   │   ├── views/

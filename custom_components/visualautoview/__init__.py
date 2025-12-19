@@ -9,6 +9,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.components import frontend
 
 from .api import setup_api
 from .const import DOMAIN
@@ -37,8 +38,25 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     else:
         _LOGGER.warning("Visual AutoView: API setup completed successfully")
 
+    # Register the custom panel in HA's sidebar
+    _LOGGER.info("Visual AutoView: Registering frontend panel...")
+    frontend.async_register_built_in_panel(
+        hass,
+        component_name="custom",
+        sidebar_title="AutoView",
+        sidebar_icon="mdi:graph",
+        frontend_url_path="visualautoview",
+        config={
+            "_panel_custom": {
+                "name": "visualautoview-panel",
+                "module_url": "/local/visualautoview/visualautoview-panel.js",
+            }
+        },
+        require_admin=False,
+    )
+
     _LOGGER.warning("========== Visual AutoView: Setup complete ==========")
-    _LOGGER.info("Visual AutoView: Access the interface at /local/visualautoview/index.html")
+    _LOGGER.info("Visual AutoView: Panel registered in sidebar")
     return True
 
 

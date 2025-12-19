@@ -89,15 +89,24 @@ Select ONE method:
 
 - [ ] **Received valid JSON responses** (not 404 or errors)
 
-## Optional: Frontend Setup
+## Panel Access
 
-Only if you want the web interface:
+The panel is automatically registered in your sidebar:
+
+- [ ] "AutoView" appears in Home Assistant sidebar with graph icon
+- [ ] Panel is accessible at `http://YOUR_HA_IP:8123/visualautoview`
+- [ ] Theme matches HA's current theme (light/dark mode)
+- [ ] No console errors in browser (F12 → Console)
+
+## Optional: Frontend Development Setup
+
+Only if you want to develop the frontend:
 
 - [ ] Node.js 18+ is installed
-- [ ] Ran installation with `-DevMode` or `--dev` flag
-- [ ] Frontend built successfully
+- [ ] Ran `npm install` in frontend directory
+- [ ] Frontend built successfully with `npm run build`
 - [ ] Files copied to `/config/www/visualautoview/`
-- [ ] Accessed at `http://YOUR_HA_IP:8123/local/visualautoview/`
+- [ ] `visualautoview-panel.js` exists in www folder
 - [ ] Web interface loads without errors
 
 ## Documentation Review
@@ -123,9 +132,13 @@ If you encounter issues:
 You should have:
 
 ✅ Visual AutoView in Configuration → Integrations  
+✅ "AutoView" panel in Home Assistant sidebar  
+✅ "Visual AutoView: Panel registered in sidebar" in logs  
 ✅ "Visual AutoView API setup complete" in logs  
 ✅ 45 endpoints registered  
 ✅ API endpoints responding to requests  
+✅ Panel accessible at /visualautoview  
+✅ Theme matches HA's current theme  
 ✅ No errors in Home Assistant logs  
 
 ## Next Steps
