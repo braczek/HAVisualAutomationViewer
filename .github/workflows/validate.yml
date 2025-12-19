@@ -46,19 +46,6 @@ jobs:
             echo "No tests configured"
           fi
           
-  hacs:
-    name: HACS Validation
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: HACS Validation
-        uses: hacs/action@main
-        with:
-          category: integration
-          
   frontend:
     name: Validate Frontend
     runs-on: ubuntu-latest

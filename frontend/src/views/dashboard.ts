@@ -37,7 +37,7 @@ export class Dashboard extends LitElement {
       display: block;
       background: var(--card-background, white);
       color: var(--text-color, #000);
-      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       height: 100vh;
       overflow: hidden;
     }
@@ -81,12 +81,14 @@ export class Dashboard extends LitElement {
       font-size: 14px;
       width: 100%;
       box-sizing: border-box;
+      background: var(--card-background, white);
+      color: var(--text-color, #000);
     }
 
     .automation-item {
       padding: 8px;
       margin-bottom: 4px;
-      background: white;
+      background: var(--card-background, white);
       border-radius: 4px;
       cursor: pointer;
       border-left: 4px solid transparent;
@@ -98,17 +100,18 @@ export class Dashboard extends LitElement {
       user-select: none;
       pointer-events: auto;
       touch-action: manipulation;
+      color: var(#000);
     }
 
     .automation-item:hover {
-      background: var(--hover-background, #f0f0f0);
-      border-left-color: var(--primary-color, #2196F3);
+      background: var(#f0f0f0);
+      border-left-color: var(#2196F3);
     }
 
     .automation-item.selected {
-      background: var(--primary-color, #2196F3);
+      background: var(#2196F3);
       color: white;
-      border-left-color: var(--accent-color, #FF5722);
+      border-left-color: var(#FF5722);
     }
 
     .info-panel {
@@ -118,7 +121,7 @@ export class Dashboard extends LitElement {
 
     .info-header {
       padding: 12px;
-      background: var(--primary-color, #2196F3);
+      background: var(#2196F3);
       color: white;
       font-weight: 600;
     }
@@ -136,7 +139,7 @@ export class Dashboard extends LitElement {
 
     .info-label {
       font-weight: 600;
-      color: var(--secondary-text, #666);
+      color: var(#666);
       font-size: 11px;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -144,7 +147,7 @@ export class Dashboard extends LitElement {
 
     .info-value {
       font-size: 14px;
-      color: var(--text-color, #000);
+      color: var(#000);
       word-break: break-word;
     }
 
@@ -156,22 +159,22 @@ export class Dashboard extends LitElement {
     }
 
     .stat-box {
-      background: white;
+      background: var(white);
       padding: 12px;
       border-radius: 4px;
       text-align: center;
-      border: 1px solid var(--divider-color, #ddd);
+      border: 1px solid var(#ddd);
     }
 
     .stat-number {
       font-size: 20px;
       font-weight: 700;
-      color: var(--primary-color, #2196F3);
+      color: var(#2196F3);
     }
 
     .stat-label {
       font-size: 11px;
-      color: var(--secondary-text, #999);
+      color: var(#999);
       text-transform: uppercase;
       margin-top: 4px;
     }
@@ -180,16 +183,16 @@ export class Dashboard extends LitElement {
       display: flex;
       gap: 8px;
       padding: 12px;
-      background: var(--control-background, #f9f9f9);
-      border-top: 1px solid var(--divider-color, #e0e0e0);
+      background: var(#f9f9f9);
+      border-top: 1px solid var(#e0e0e0);
     }
 
     button {
       flex: 1;
       padding: 8px;
-      border: 1px solid var(--primary-color, #2196F3);
-      background: white;
-      color: var(--primary-color, #2196F3);
+      border: 1px solid var(#2196F3);
+      background: var(white);
+      color: var(#2196F3);
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
@@ -198,7 +201,7 @@ export class Dashboard extends LitElement {
     }
 
     button:hover {
-      background: var(--primary-color, #2196F3);
+      background: var(#2196F3);
       color: white;
     }
 
@@ -212,15 +215,15 @@ export class Dashboard extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--secondary-text, #999);
+      color: var(#999);
     }
 
     .spinner {
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid var(--divider-color, #ddd);
-      border-top-color: var(--primary-color, #2196F3);
+      border: 3px solid var(#ddd);
+      border-top-color: var(#2196F3);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -233,8 +236,8 @@ export class Dashboard extends LitElement {
 
     .error {
       padding: 12px;
-      background: #ffebee;
-      color: #c62828;
+      background: var(#ffebee);
+      color: var(--ha-error-text-color, #c62828);
       border-radius: 4px;
       margin-bottom: 12px;
       font-size: 12px;
@@ -245,7 +248,7 @@ export class Dashboard extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(--secondary-text, #999);
+      color: var(#999);
       text-align: center;
       padding: 20px;
     }
@@ -540,3 +543,4 @@ declare global {
     'vav-dashboard': Dashboard;
   }
 }
+

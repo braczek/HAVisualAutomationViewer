@@ -44,9 +44,10 @@ export class GraphVisualization extends LitElement {
     #graph-container {
       width: 100%;
       height: 600px;
-      border: 1px solid var(--divider-color, #e0e0e0);
+      border: 1px solid var(#e0e0e0);
       border-radius: 4px;
       overflow: hidden;
+      background: var(white);
     }
 
     .controls {
@@ -58,9 +59,9 @@ export class GraphVisualization extends LitElement {
 
     button {
       padding: 6px 12px;
-      border: 1px solid var(--primary-color, #2196F3);
-      background: white;
-      color: var(--primary-color, #2196F3);
+      border: 1px solid var(#2196F3);
+      background: var(white);
+      color: var(#2196F3);
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
@@ -68,7 +69,7 @@ export class GraphVisualization extends LitElement {
     }
 
     button:hover {
-      background: var(--primary-color, #2196F3);
+      background: var(#2196F3);
       color: white;
     }
 
@@ -81,7 +82,7 @@ export class GraphVisualization extends LitElement {
       gap: 16px;
       margin-top: 12px;
       font-size: 12px;
-      color: var(--secondary-text, #666);
+      color: var(#666);
     }
 
     .stat-item {
@@ -94,8 +95,9 @@ export class GraphVisualization extends LitElement {
       display: inline-block;
       padding: 2px 6px;
       border-radius: 3px;
-      background: var(--accent-color, #f5f5f5);
+      background: var(#f5f5f5);
       font-weight: 500;
+      color: var(#000);
     }
   `;
 
@@ -162,6 +164,12 @@ export class GraphVisualization extends LitElement {
 
       console.log('DataSets created. Nodes count:', nodes.length, 'Edges count:', edges.length);
 
+      // Get colors from CSS variables
+      const computedStyle = getComputedStyle(document.body);
+      const edgeColor = computedStyle.getPropertyValue('--ha-divider-color').trim() || '#999';
+      const highlightColor = computedStyle.getPropertyValue('--ha-primary-color').trim() || '#2196F3';
+      const textColor = computedStyle.getPropertyValue('--ha-primary-text-color').trim() || 'black';
+
       const options = {
         physics: {
           enabled: true,
@@ -172,7 +180,7 @@ export class GraphVisualization extends LitElement {
         nodes: {
           font: {
             size: 14,
-            color: 'black',
+            color: textColor,
           },
           borderWidth: 2,
           borderWidthSelected: 4,
@@ -190,9 +198,9 @@ export class GraphVisualization extends LitElement {
             roundness: 0.5,
           },
           color: {
-            color: '#999',
-            highlight: '#2196F3',
-            hover: '#666',
+            color: edgeColor,
+            highlight: highlightColor,
+            hover: edgeColor,
           },
           width: 2,
           hoverWidth: 3,
@@ -242,10 +250,13 @@ export class GraphVisualization extends LitElement {
   }
 
   private getStyledNodes(): Node[] {
+    // Get colors from CSS variables with fallbacks
+    const computedStyle = getComputedStyle(document.body);
     const typeColors = {
-      trigger: '#4CAF50',
-      condition: '#2196F3',
-      action: '#FF9800',
+      trigger: computedStyle.getPropertyValue('--ha-success-color').trim() || '#4CAF50',
+      condition: computedStyle.getPropertyValue('--ha-info-color').trim() || 
+                 computedStyle.getPropertyValue('--ha-primary-color').trim() || '#2196F3',
+      action: computedStyle.getPropertyValue('--ha-accent-color').trim() || '#FF9800',
     };
 
     const typeShapes = {
@@ -256,8 +267,8 @@ export class GraphVisualization extends LitElement {
 
     return this.nodes.map(node => ({
       ...node,
-      color: typeColors[node.type],
-      shape: typeShapes[node.type],
+      color: typeColors[node.type] || '#999',
+      shape: typeShapes[node.type] || 'dot',
     }));
   }
 
@@ -308,3 +319,4 @@ declare global {
     'vav-graph': GraphVisualization;
   }
 }
+

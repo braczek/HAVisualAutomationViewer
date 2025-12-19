@@ -90,16 +90,19 @@ HAVisualAutomationViewer/
 
 **IMPORTANT**: When generating code or making changes:
 - **Do NOT create summary or status markdown files** (e.g., IMPLEMENTATION_COMPLETE.md, STATUS_REPORT.md)
+- **Do NOT generate documentation summaries after running commands or making changes**
 - **Keep output minimal** - only generate/modify code that is necessary
 - **No documentation files** unless explicitly requested
 - **Focus on implementation** - let the code speak for itself
 - **Direct commits** - make changes and commit without intermediate documentation
+- **Concise responses** - confirm completion without lengthy explanations
 
 When asked to add features or fix issues:
 1. Generate/modify only the necessary code files
 2. Ensure code passes all linting and formatting checks
 3. Commit changes with clear, descriptive messages
 4. No extra markdown files or documentation summaries
+5. Brief confirmation only - avoid detailed summaries of what was done
 
 ## Python Code Standards
 

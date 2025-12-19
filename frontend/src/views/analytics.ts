@@ -44,9 +44,9 @@ export class AnalyticsPanel extends LitElement {
   static styles = css`
     :host {
       display: block;
-      background: var(--card-background, white);
-      color: var(--text-color, #000);
-      font-family: var(--font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      background: var(white);
+      color: var(#000);
+      font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     }
 
     .container {
@@ -58,8 +58,8 @@ export class AnalyticsPanel extends LitElement {
     .tabs {
       display: flex;
       gap: 0;
-      border-bottom: 2px solid var(--divider-color, #e0e0e0);
-      background: var(--panel-background, #f5f5f5);
+      border-bottom: 2px solid var(#e0e0e0);
+      background: var(#f5f5f5);
     }
 
     .tab-button {
@@ -69,7 +69,7 @@ export class AnalyticsPanel extends LitElement {
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
-      color: var(--secondary-text, #666);
+      color: var(#666);
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
       position: relative;
@@ -77,12 +77,12 @@ export class AnalyticsPanel extends LitElement {
     }
 
     .tab-button:hover {
-      color: var(--text-color, #000);
+      color: var(#000);
     }
 
     .tab-button.active {
-      color: var(--primary-color, #2196F3);
-      border-bottom-color: var(--primary-color, #2196F3);
+      color: var(#2196F3);
+      border-bottom-color: var(#2196F3);
     }
 
     .content {
@@ -100,8 +100,8 @@ export class AnalyticsPanel extends LitElement {
     }
 
     .metric-card {
-      background: white;
-      border: 1px solid var(--divider-color, #e0e0e0);
+      background: var(white);
+      border: 1px solid var(#e0e0e0);
       border-radius: 8px;
       padding: 16px;
       margin-bottom: 12px;
@@ -123,24 +123,24 @@ export class AnalyticsPanel extends LitElement {
       display: inline-block;
       padding: 4px 8px;
       border-radius: 4px;
-      background: var(--accent-color, #f5f5f5);
+      background: var(#f5f5f5);
       font-size: 11px;
       font-weight: 600;
     }
 
     .metric-badge.success {
-      background: #c8e6c9;
-      color: #2e7d32;
+      background: var(--ha-success-color, #c8e6c9);
+      color: var(--ha-success-text-color, #2e7d32);
     }
 
     .metric-badge.warning {
-      background: #fff3cd;
-      color: #856404;
+      background: var(--ha-warning-color, #fff3cd);
+      color: var(--ha-warning-text-color, #856404);
     }
 
     .metric-badge.danger {
-      background: #f8d7da;
-      color: #721c24;
+      background: var(--ha-error-color, #f8d7da);
+      color: var(--ha-error-text-color, #721c24);
     }
 
     .metric-grid {
@@ -580,3 +580,4 @@ declare global {
     'vav-analytics': AnalyticsPanel;
   }
 }
+

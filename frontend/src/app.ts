@@ -13,10 +13,72 @@ import './components/graph';
 export class VisualAutoViewApp extends LitElement {
   @state() currentView = 'dashboard';
   @state() selectedAutomation = '';
+  @state() isDarkMode = false;
 
   connectedCallback() {
     super.connectedCallback();
+    this.detectTheme();
     this.parseUrlParameters();
+  }
+
+  private detectTheme() {
+    // Try to detect dark mode from multiple sources
+    
+    // 1. Check if we're in an iframe and can access parent HA theme
+    try {
+      if (window.parent && window.parent !== window) {
+        const parentStyles = window.parent.getComputedStyle(window.parent.document.documentElement);
+        const bgColor = parentStyles.getPropertyValue('--primary-background-color') || 
+                       parentStyles.getPropertyValue('background-color');
+        // If background is dark, we're in dark mode
+        if (bgColor && this.isColorDark(bgColor)) {
+          this.isDarkMode = true;
+        }
+      }
+    } catch (e) {
+      // Cross-origin restriction, fallback to other methods
+    }
+
+    // 2. Check URL parameter
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('theme') === 'dark') {
+      this.isDarkMode = true;
+    } else if (params.get('theme') === 'light') {
+      this.isDarkMode = false;
+    }
+    // 3. Check system preference if not overridden
+    else if (!this.isDarkMode && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      this.isDarkMode = true;
+    }
+
+    // Apply theme class to document
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+    }
+
+    // Listen for system theme changes
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        this.isDarkMode = e.matches;
+        if (this.isDarkMode) {
+          document.documentElement.classList.add('dark-mode');
+        } else {
+          document.documentElement.classList.remove('dark-mode');
+        }
+        this.requestUpdate();
+      });
+    }
+  }
+
+  private isColorDark(color: string): boolean {
+    // Convert color to RGB and calculate luminance
+    const rgb = color.match(/\d+/g);
+    if (!rgb || rgb.length < 3) return false;
+    const [r, g, b] = rgb.map(Number);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance < 0.5;
   }
 
   private parseUrlParameters() {
@@ -41,6 +103,7 @@ export class VisualAutoViewApp extends LitElement {
   static styles = css`
     :host {
       display: block;
+      /* Light theme colors (default) */
       --primary-color: #2196F3;
       --accent-color: #FF9800;
       --divider-color: #e0e0e0;
@@ -57,10 +120,30 @@ export class VisualAutoViewApp extends LitElement {
 
       height: 100vh;
       overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-        Arial, sans-serif;
+      background: var(--card-background);
+      color: var(--text-color);
+      font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Dark mode overrides */
+    :host-context(.dark-mode),
+    :host(.dark-mode) {
+      --primary-color: #64B5F6;
+      --accent-color: #FFB74D;
+      --divider-color: #424242;
+      --panel-background: #1e1e1e;
+      --card-background: #2c2c2c;
+      --text-color: #e1e1e1;
+      --secondary-text: #b0b0b0;
+      --hover-background: #3a3a3a;
+      --control-background: #2c2c2c;
+      --metric-bg: #2c2c2c;
+      --success-color: #81C784;
+      --warning-color: #FFD54F;
+      --error-color: #E57373;
     }
 
     .app-container {
