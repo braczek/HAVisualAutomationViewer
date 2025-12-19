@@ -11,6 +11,8 @@ spec_const = importlib.util.spec_from_file_location(
     "const",
     Path(__file__).parent.parent / "custom_components" / "visualautoview" / "const.py",
 )
+if spec_const is None or spec_const.loader is None:
+    raise ImportError("Could not load const module")
 const = importlib.util.module_from_spec(spec_const)
 sys.modules["const"] = const
 spec_const.loader.exec_module(const)
@@ -22,9 +24,9 @@ spec_parser = importlib.util.spec_from_file_location(
     / "visualautoview"
     / "graph_parser.py",
 )
+if spec_parser is None or spec_parser.loader is None:
+    raise ImportError("Could not load graph_parser module")
 graph_parser = importlib.util.module_from_spec(spec_parser)
-# Add const as a dependency
-graph_parser.const = const
 sys.modules["graph_parser"] = graph_parser
 spec_parser.loader.exec_module(graph_parser)
 

@@ -1,15 +1,9 @@
 """Phase 2 API Endpoints - Dashboard, Search, Export, Themes, Comparison."""
 
 import logging
+from http import HTTPStatus
 from typing import Any, Dict, List, Optional
 
-from homeassistant.const import (
-    HTTP_BAD_REQUEST,
-    HTTP_CREATED,
-    HTTP_INTERNAL_SERVER_ERROR,
-    HTTP_NOT_FOUND,
-    HTTP_OK,
-)
 from homeassistant.core import HomeAssistant
 
 from .base import ApiErrorHandler, RestApiEndpoint
@@ -126,11 +120,11 @@ class GetDashboardEndpoint(RestApiEndpoint):
                 },
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetAllAutomationsEndpoint(RestApiEndpoint):
@@ -209,11 +203,11 @@ class GetAllAutomationsEndpoint(RestApiEndpoint):
                 },
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetAutomationSummaryEndpoint(RestApiEndpoint):
@@ -241,11 +235,11 @@ class GetAutomationSummaryEndpoint(RestApiEndpoint):
                 "by_type": {},
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -258,6 +252,12 @@ class SearchAutomationsEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/search"
     name = "api:visualautoview:search_automations"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """
@@ -293,7 +293,7 @@ class SearchAutomationsEndpoint(RestApiEndpoint):
 
             if not body or "query" not in body:
                 return self.error_response(
-                    "Missing required field: query", HTTP_BAD_REQUEST
+                    "Missing required field: query", HTTPStatus.BAD_REQUEST
                 )
 
             query = body.get("query", "")
@@ -348,11 +348,11 @@ class SearchAutomationsEndpoint(RestApiEndpoint):
                 "total_pages": total_pages,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class AdvancedSearchEndpoint(RestApiEndpoint):
@@ -361,6 +361,12 @@ class AdvancedSearchEndpoint(RestApiEndpoint):
     url = "/api/visualautoview/phase2/search/advanced"
     name = "api:visualautoview:advanced_search"
 
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
+
     async def post(self, request) -> tuple:
         """POST advanced search request."""
         try:
@@ -368,7 +374,7 @@ class AdvancedSearchEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body:
-                return self.error_response("Invalid request", HTTP_BAD_REQUEST)
+                return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
 
             query = body.get("query", "")
             automations = self.hass.states.async_entity_ids("automation")
@@ -388,11 +394,11 @@ class AdvancedSearchEndpoint(RestApiEndpoint):
                 "total_results": len(results),
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -405,6 +411,12 @@ class FilterAutomationsEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/filter"
     name = "api:visualautoview:filter_automations"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Filter automations by various criteria."""
@@ -428,11 +440,11 @@ class FilterAutomationsEndpoint(RestApiEndpoint):
                 "total_count": len(results),
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetFilterOptionsEndpoint(RestApiEndpoint):
@@ -454,11 +466,11 @@ class GetFilterOptionsEndpoint(RestApiEndpoint):
                 "action_types": ["call_service", "toggle", "turn_on", "turn_off"],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -471,6 +483,12 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/export"
     name = "api:visualautoview:export_automations"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """
@@ -491,14 +509,14 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body:
-                return self.error_response("Invalid request", HTTP_BAD_REQUEST)
+                return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
 
             export_format = body.get("format", "json")
             include_graphs = body.get("include_graphs", True)
 
             if export_format not in ("json", "csv", "pdf"):
                 return self.error_response(
-                    f"Invalid format: {export_format}", HTTP_BAD_REQUEST
+                    f"Invalid format: {export_format}", HTTPStatus.BAD_REQUEST
                 )
 
             result = {
@@ -510,11 +528,11 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
                 "estimated_time_seconds": 5,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class ExportGraphEndpoint(RestApiEndpoint):
@@ -522,6 +540,12 @@ class ExportGraphEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/export/graph/{automation_id}"
     name = "api:visualautoview:export_graph"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Export graph for specific automation."""
@@ -542,11 +566,11 @@ class ExportGraphEndpoint(RestApiEndpoint):
                 },
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -585,11 +609,11 @@ class ListThemesEndpoint(RestApiEndpoint):
                 "total_count": len(themes),
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetThemeEndpoint(RestApiEndpoint):
@@ -611,11 +635,11 @@ class GetThemeEndpoint(RestApiEndpoint):
                 "colors": {},
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class CreateThemeEndpoint(RestApiEndpoint):
@@ -624,6 +648,12 @@ class CreateThemeEndpoint(RestApiEndpoint):
     url = "/api/visualautoview/phase2/themes"
     name = "api:visualautoview:create_theme"
 
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
+
     async def post(self, request) -> tuple:
         """Create new theme."""
         try:
@@ -631,7 +661,7 @@ class CreateThemeEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body or "name" not in body:
-                return self.error_response("Missing field: name", HTTP_BAD_REQUEST)
+                return self.error_response("Missing field: name", HTTPStatus.BAD_REQUEST)
 
             result = {
                 "id": "theme_new",
@@ -639,11 +669,11 @@ class CreateThemeEndpoint(RestApiEndpoint):
                 "colors": body.get("colors", {}),
             }
 
-            self.log_response(HTTP_CREATED)
-            return self.json_response(result, HTTP_CREATED, "Theme created")
+            self.log_response(HTTPStatus.CREATED)
+            return self.json_response(result, HTTPStatus.CREATED, "Theme created")
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class UpdateThemeEndpoint(RestApiEndpoint):
@@ -665,11 +695,11 @@ class UpdateThemeEndpoint(RestApiEndpoint):
                 "updated": True,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class DeleteThemeEndpoint(RestApiEndpoint):
@@ -690,11 +720,11 @@ class DeleteThemeEndpoint(RestApiEndpoint):
                 "deleted": True,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class ApplyThemeEndpoint(RestApiEndpoint):
@@ -702,6 +732,12 @@ class ApplyThemeEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/themes/{theme_id}/apply"
     name = "api:visualautoview:apply_theme"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Apply theme to automations."""
@@ -717,11 +753,11 @@ class ApplyThemeEndpoint(RestApiEndpoint):
                 "automations_affected": body.get("automation_ids", []) if body else [],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class ExportThemeEndpoint(RestApiEndpoint):
@@ -743,11 +779,11 @@ class ExportThemeEndpoint(RestApiEndpoint):
                 "data": {},
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class ImportThemeEndpoint(RestApiEndpoint):
@@ -755,6 +791,12 @@ class ImportThemeEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/themes/import"
     name = "api:visualautoview:import_theme"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Import theme."""
@@ -767,11 +809,11 @@ class ImportThemeEndpoint(RestApiEndpoint):
                 "imported": True,
             }
 
-            self.log_response(HTTP_CREATED)
-            return self.json_response(result, HTTP_CREATED)
+            self.log_response(HTTPStatus.CREATED)
+            return self.json_response(result, HTTPStatus.CREATED)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -784,6 +826,12 @@ class CompareAutomationsEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase2/compare"
     name = "api:visualautoview:compare_automations"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """
@@ -807,7 +855,7 @@ class CompareAutomationsEndpoint(RestApiEndpoint):
                 or "automation_id_2" not in body
             ):
                 return self.error_response(
-                    "Missing fields: automation_id_1, automation_id_2", HTTP_BAD_REQUEST
+                    "Missing fields: automation_id_1, automation_id_2", HTTPStatus.BAD_REQUEST
                 )
 
             result = {
@@ -818,11 +866,11 @@ class CompareAutomationsEndpoint(RestApiEndpoint):
                 "common_elements": [],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetConsolidationSuggestionsEndpoint(RestApiEndpoint):
@@ -848,8 +896,8 @@ class GetConsolidationSuggestionsEndpoint(RestApiEndpoint):
                 "total_suggestions": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)

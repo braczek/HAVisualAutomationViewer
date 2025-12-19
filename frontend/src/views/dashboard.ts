@@ -22,7 +22,9 @@ export class Dashboard extends LitElement {
   @property({ type: Object }) config: any = {};
   @state() automations: Automation[] = [];
   @state() selectedAutomation: Automation | null = null;
+  @state() selectedAutomationDetails: any = null;
   @state() loading = false;
+  @state() detailsLoading = false;
   @state() error: string | null = null;
   @state() searchQuery = '';
   @state() selectedTheme = 'light';
@@ -92,6 +94,9 @@ export class Dashboard extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      user-select: none;
+      pointer-events: auto;
+      touch-action: manipulation;
     }
 
     .automation-item:hover {
@@ -291,7 +296,10 @@ export class Dashboard extends LitElement {
                               class="automation-item ${this.selectedAutomation?.entity_id === automation.entity_id
                                 ? 'selected'
                                 : ''}"
-                              @click=${() => this.selectAutomation(automation)}
+                              @click=${(e: Event) => {
+                                console.log('Click event fired on:', automation.name);
+                                this.selectAutomation(automation);
+                              }}
                               title="${automation.name}"
                             >
                               ${automation.name}
@@ -311,38 +319,54 @@ export class Dashboard extends LitElement {
           <div class="panel-content">
             ${this.error ? html` <div class="error">${this.error}</div> ` : ''}
             ${this.selectedAutomation
-              ? html`
-                  <div class="info-item">
-                    <div class="info-label">Entity ID</div>
-                    <div class="info-value">${this.selectedAutomation.entity_id}</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">Name</div>
-                    <div class="info-value">${this.selectedAutomation.name}</div>
-                  </div>
-                  ${this.selectedAutomation.description
-                    ? html`
-                        <div class="info-item">
-                          <div class="info-label">Description</div>
-                          <div class="info-value">${this.selectedAutomation.description}</div>
-                        </div>
-                      `
-                    : ''}
-                  <div class="stat-group">
-                    <div class="stat-box">
-                      <div class="stat-number">${this.selectedAutomation.trigger_count}</div>
-                      <div class="stat-label">Triggers</div>
+              ? this.detailsLoading
+                ? html`
+                    <div class="loading">
+                      <div class="spinner"></div>
+                      <p>Loading automation details...</p>
                     </div>
-                    <div class="stat-box">
-                      <div class="stat-number">${this.selectedAutomation.condition_count}</div>
-                      <div class="stat-label">Conditions</div>
+                  `
+                : html`
+                    <div class="info-item">
+                      <div class="info-label">Entity ID</div>
+                      <div class="info-value">${this.selectedAutomation.entity_id}</div>
                     </div>
-                    <div class="stat-box">
-                      <div class="stat-number">${this.selectedAutomation.action_count}</div>
-                      <div class="stat-label">Actions</div>
+                    <div class="info-item">
+                      <div class="info-label">Name</div>
+                      <div class="info-value">${this.selectedAutomation.name}</div>
                     </div>
-                  </div>
-                `
+                    ${this.selectedAutomation.description
+                      ? html`
+                          <div class="info-item">
+                            <div class="info-label">Description</div>
+                            <div class="info-value">${this.selectedAutomation.description}</div>
+                          </div>
+                        `
+                      : ''}
+                    <div class="stat-group">
+                      <div class="stat-box">
+                        <div class="stat-number">${
+                          this.selectedAutomationDetails?.statistics?.trigger_count ||
+                          this.selectedAutomation.trigger_count
+                        }</div>
+                        <div class="stat-label">Triggers</div>
+                      </div>
+                      <div class="stat-box">
+                        <div class="stat-number">${
+                          this.selectedAutomationDetails?.statistics?.condition_count ||
+                          this.selectedAutomation.condition_count
+                        }</div>
+                        <div class="stat-label">Conditions</div>
+                      </div>
+                      <div class="stat-box">
+                        <div class="stat-number">${
+                          this.selectedAutomationDetails?.statistics?.action_count ||
+                          this.selectedAutomation.action_count
+                        }</div>
+                        <div class="stat-label">Actions</div>
+                      </div>
+                    </div>
+                  `
               : html`
                   <div class="empty-state">
                     Select an automation to view details
@@ -366,12 +390,18 @@ export class Dashboard extends LitElement {
           </div>
           <div class="panel-content">
             ${this.selectedAutomation
-              ? html`
-                  <vav-graph
-                    .nodes=${this.getGraphNodes()}
-                    .edges=${this.getGraphEdges()}
-                  ></vav-graph>
-                `
+              ? this.detailsLoading
+                ? html`
+                    <div class="loading">
+                      <div class="spinner"></div>
+                    </div>
+                  `
+                : html`
+                    <vav-graph
+                      .nodes=${this.selectedAutomationDetails?.nodes || []}
+                      .edges=${this.selectedAutomationDetails?.edges || []}
+                    ></vav-graph>
+                  `
               : html`
                   <div class="empty-state">
                     Select an automation to view its graph
@@ -386,16 +416,41 @@ export class Dashboard extends LitElement {
   private async loadAutomations() {
     this.loading = true;
     this.error = null;
+    console.log('Loading automations... loading state:', this.loading);
+    
     try {
       const result = await this.api!.listAutomations();
-      this.automations = result.automations || [];
-      if (this.automations.length > 0) {
-        this.selectedAutomation = this.automations[0];
+      console.log('API result:', result);
+      
+      // Backend returns: { success: true, data: { automations: [...] } }
+      if (result.success && result.data?.automations) {
+        // Map backend AutomationInfo to frontend Automation format
+        this.automations = result.data.automations.map((auto: any) => ({
+          entity_id: auto.automation_id,
+          name: auto.alias,
+          description: auto.description || '',
+          trigger_count: auto.node_count || 0,
+          condition_count: 0,
+          action_count: 0,
+        }));
+        
+        console.log('Loaded automations:', this.automations);
+        
+        if (this.automations.length > 0) {
+          this.selectedAutomation = this.automations[0];
+        }
+      } else {
+        console.warn('No automations found in response:', result);
+        this.automations = [];
       }
     } catch (err) {
+      console.error('Failed to load automations:', err);
       this.error = `Failed to load automations: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      this.automations = [];
     } finally {
       this.loading = false;
+      console.log('Loading complete. loading state:', this.loading, 'automations count:', this.automations.length);
+      this.requestUpdate(); // Force re-render
     }
   }
 
@@ -409,8 +464,35 @@ export class Dashboard extends LitElement {
     );
   }
 
+  private async loadAutomationDetails(automationId: string) {
+    try {
+      const result = await this.api!.getAutomationGraph(automationId);
+      if (result.success && result.data) {
+        this.selectedAutomationDetails = result.data;
+        this.error = null;
+        console.log('Loaded automation details:', this.selectedAutomationDetails);
+        console.log('Nodes:', this.selectedAutomationDetails.nodes);
+        console.log('Edges:', this.selectedAutomationDetails.edges);
+      } else {
+        this.error = 'Failed to load automation details';
+        console.warn('No details in response:', result);
+      }
+    } catch (err) {
+      console.error('Failed to load automation details:', err);
+      this.error = `Failed to load details: ${err instanceof Error ? err.message : 'Unknown error'}`;
+    } finally {
+      this.detailsLoading = false;
+      this.requestUpdate();
+    }
+  }
+
   private selectAutomation(automation: Automation) {
+    console.log('selectAutomation called with:', automation);
     this.selectedAutomation = automation;
+    this.selectedAutomationDetails = null;
+    this.detailsLoading = true;
+    this.requestUpdate();
+    this.loadAutomationDetails(automation.entity_id);
   }
 
   private onSearchInput(e: Event) {
@@ -432,34 +514,6 @@ export class Dashboard extends LitElement {
       detail: { automation: this.selectedAutomation },
     });
     this.dispatchEvent(event);
-  }
-
-  private getGraphNodes() {
-    if (!this.selectedAutomation) return [];
-    return [
-      {
-        id: 'triggers',
-        label: `Triggers (${this.selectedAutomation.trigger_count})`,
-        type: 'trigger' as const,
-      },
-      {
-        id: 'conditions',
-        label: `Conditions (${this.selectedAutomation.condition_count})`,
-        type: 'condition' as const,
-      },
-      {
-        id: 'actions',
-        label: `Actions (${this.selectedAutomation.action_count})`,
-        type: 'action' as const,
-      },
-    ];
-  }
-
-  private getGraphEdges() {
-    return [
-      { from: 'triggers', to: 'conditions', arrows: 'to' },
-      { from: 'conditions', to: 'actions', arrows: 'to' },
-    ];
   }
 }
 

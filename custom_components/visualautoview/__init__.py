@@ -22,17 +22,23 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Visual AutoView integration."""
-    _LOGGER.debug("Setting up Visual AutoView integration")
+    _LOGGER.warning("========== Visual AutoView: Starting setup ==========")
+    _LOGGER.info("Visual AutoView integration is being loaded")
 
     # Store a reference to the domain
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
 
     # Set up API endpoints
+    _LOGGER.info("Visual AutoView: Setting up API endpoints...")
     api_setup_ok = await setup_api(hass)
     if not api_setup_ok:
-        _LOGGER.warning("Failed to setup Visual AutoView API")
+        _LOGGER.error("Visual AutoView: FAILED to setup API endpoints!")
+    else:
+        _LOGGER.warning("Visual AutoView: API setup completed successfully")
 
+    _LOGGER.warning("========== Visual AutoView: Setup complete ==========")
+    _LOGGER.info("Visual AutoView: Access the interface at /local/visualautoview/index.html")
     return True
 
 

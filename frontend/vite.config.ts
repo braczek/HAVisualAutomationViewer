@@ -3,18 +3,25 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
   plugins: [basicSsl()],
+  base: '/local/visualautoview/',
   build: {
-    lib: {
-      entry: 'src/index.ts',
-      name: 'VisualAutoView',
-      fileName: (format) => `visual-autoview.${format === 'es' ? 'js' : 'cjs'}`
-    },
+    outDir: 'dist',
     minify: true,
     sourcemap: true,
-    outDir: 'dist'
+    rollupOptions: {
+      input: {
+        main: 'index.html'
+      }
+    }
   },
   server: {
     port: 3000,
-    https: true
+    https: true,
+    proxy: {
+      '/api': {
+        target: 'http://192.168.1.7:8123',
+        changeOrigin: true
+      }
+    }
   }
 });

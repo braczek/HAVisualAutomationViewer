@@ -56,8 +56,12 @@ class AutomationEdge:
     label: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert edge to dictionary for JSON serialization."""
-        return asdict(self)
+        """Convert edge to dictionary for JSON serialization with vis-network format."""
+        return {
+            "from": self.from_node,
+            "to": self.to_node,
+            "label": self.label,
+        }
 
 
 @dataclass
@@ -175,7 +179,8 @@ class AutomationGraphParser:
         Returns:
             list[str]: List of trigger node IDs
         """
-        triggers = automation_config.get("trigger", [])
+        # Accept both "trigger" and "triggers" field names
+        triggers = automation_config.get("triggers") or automation_config.get("trigger", [])
         if not isinstance(triggers, list):
             triggers = [triggers]
 
@@ -211,7 +216,8 @@ class AutomationGraphParser:
         Returns:
             list[str]: List of condition node IDs
         """
-        conditions = automation_config.get("condition", [])
+        # Accept both "condition" and "conditions" field names
+        conditions = automation_config.get("conditions") or automation_config.get("condition", [])
         if not isinstance(conditions, list):
             if conditions:
                 conditions = [conditions]
@@ -249,15 +255,255 @@ class AutomationGraphParser:
         Returns:
             list[str]: List of action node IDs
         """
-        actions = automation_config.get("action", [])
+        # Accept both "action" and "actions" field names
+        actions = automation_config.get("actions") or automation_config.get("action", [])
         if not isinstance(actions, list):
             actions = [actions] if actions else []
 
         action_ids = []
         for idx, action in enumerate(actions):
-            action_id = self._generate_node_id("action")
+            # Process nested actions recursively
+            nested_ids = self._process_action_recursive(action, idx, graph)
+            action_ids.extend(nested_ids)
 
-            label = self._format_action_label(action, idx)
+        return action_ids
+
+    def _process_action_recursive(
+        self, action: dict[str, Any], index: int, graph: AutomationGraph, parent_id: str | None = None
+    ) -> list[str]:
+        """Process an action recursively, handling nested structures.
+
+        Args:
+            action: The action configuration
+            index: The action index
+            graph: The graph to add nodes to
+            parent_id: Optional parent node ID for nested actions
+
+        Returns:
+            list[str]: List of action node IDs created
+        """
+        action_ids = []
+
+        # Handle choose/if-then structures
+        if "choose" in action:
+            choose_id = self._generate_node_id("action")
+            node = AutomationNode(
+                id=choose_id,
+                label="Choose/If-Then",
+                type=COMP_TYPE_ACTION,
+                data={"type": "choose"},
+                color=COLORS[COMP_TYPE_ACTION],
+            )
+            graph.nodes.append(node)
+            action_ids.append(choose_id)
+
+            # Process each choice branch
+            choose_list = action.get("choose", [])
+            if not isinstance(choose_list, list):
+                choose_list = [choose_list]
+
+            for choice_idx, choice in enumerate(choose_list):
+                # Create a branch node
+                branch_id = self._generate_node_id("action")
+                branch_label = f"Branch {choice_idx + 1}"
+                
+                # Check if there are conditions for this choice
+                if "conditions" in choice or "condition" in choice:
+                    conditions = choice.get("conditions") or choice.get("condition", [])
+                    if not isinstance(conditions, list):
+                        conditions = [conditions] if conditions else []
+                    if conditions:
+                        cond_summary = self._summarize_conditions(conditions)
+                        branch_label = f"If: {cond_summary}"
+
+                branch_node = AutomationNode(
+                    id=branch_id,
+                    label=branch_label,
+                    type=COMP_TYPE_CONDITION,
+                    data=choice.get("conditions") or choice.get("condition", {}),
+                    color=COLORS[COMP_TYPE_CONDITION],
+                )
+                graph.nodes.append(branch_node)
+                graph.edges.append(AutomationEdge(from_node=choose_id, to_node=branch_id, label=f"option {choice_idx + 1}"))
+
+                # Process sequence of actions in this branch
+                sequence = choice.get("sequence", [])
+                if not isinstance(sequence, list):
+                    sequence = [sequence] if sequence else []
+
+                prev_id = branch_id
+                for seq_idx, seq_action in enumerate(sequence):
+                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=branch_id)
+                    if seq_ids:
+                        # Connect first action in sequence to branch
+                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        # Connect actions in sequence
+                        for i in range(len(seq_ids) - 1):
+                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        prev_id = seq_ids[-1]
+
+            # Handle default branch
+            if "default" in action:
+                default_id = self._generate_node_id("action")
+                default_node = AutomationNode(
+                    id=default_id,
+                    label="Default/Else",
+                    type=COMP_TYPE_CONDITION,
+                    data={"type": "default"},
+                    color=COLORS[COMP_TYPE_CONDITION],
+                )
+                graph.nodes.append(default_node)
+                graph.edges.append(AutomationEdge(from_node=choose_id, to_node=default_id, label="else"))
+
+                # Process default sequence
+                default_sequence = action.get("default", [])
+                if not isinstance(default_sequence, list):
+                    default_sequence = [default_sequence] if default_sequence else []
+
+                prev_id = default_id
+                for seq_idx, seq_action in enumerate(default_sequence):
+                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=default_id)
+                    if seq_ids:
+                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        for i in range(len(seq_ids) - 1):
+                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        prev_id = seq_ids[-1]
+
+        # Handle if-then structure
+        elif "if" in action:
+            if_id = self._generate_node_id("action")
+            
+            # Get condition summary
+            conditions = action.get("if", [])
+            if not isinstance(conditions, list):
+                conditions = [conditions] if conditions else []
+            cond_summary = self._summarize_conditions(conditions)
+            
+            node = AutomationNode(
+                id=if_id,
+                label=f"If: {cond_summary}",
+                type=COMP_TYPE_CONDITION,
+                data=action.get("if", {}),
+                color=COLORS[COMP_TYPE_CONDITION],
+            )
+            graph.nodes.append(node)
+            action_ids.append(if_id)
+
+            # Process then branch
+            if "then" in action:
+                then_sequence = action.get("then", [])
+                if not isinstance(then_sequence, list):
+                    then_sequence = [then_sequence] if then_sequence else []
+
+                prev_id = if_id
+                for seq_idx, seq_action in enumerate(then_sequence):
+                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=if_id)
+                    if seq_ids:
+                        if prev_id == if_id:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="then"))
+                        else:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        for i in range(len(seq_ids) - 1):
+                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        prev_id = seq_ids[-1]
+
+            # Process else branch
+            if "else" in action:
+                else_sequence = action.get("else", [])
+                if not isinstance(else_sequence, list):
+                    else_sequence = [else_sequence] if else_sequence else []
+
+                prev_id = if_id
+                for seq_idx, seq_action in enumerate(else_sequence):
+                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=if_id)
+                    if seq_ids:
+                        if prev_id == if_id:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="else"))
+                        else:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        for i in range(len(seq_ids) - 1):
+                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        prev_id = seq_ids[-1]
+
+        # Handle parallel actions
+        elif "parallel" in action:
+            parallel_id = self._generate_node_id("action")
+            node = AutomationNode(
+                id=parallel_id,
+                label="Parallel Actions",
+                type=COMP_TYPE_ACTION,
+                data={"type": "parallel"},
+                color=COLORS[COMP_TYPE_ACTION],
+            )
+            graph.nodes.append(node)
+            action_ids.append(parallel_id)
+
+            # Process each parallel sequence
+            parallel_sequences = action.get("parallel", [])
+            if not isinstance(parallel_sequences, list):
+                parallel_sequences = [parallel_sequences]
+
+            for par_idx, sequence in enumerate(parallel_sequences):
+                if not isinstance(sequence, list):
+                    sequence = [sequence] if sequence else []
+
+                prev_id = parallel_id
+                for seq_idx, seq_action in enumerate(sequence):
+                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=parallel_id)
+                    if seq_ids:
+                        if prev_id == parallel_id:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label=f"thread {par_idx + 1}"))
+                        else:
+                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        for i in range(len(seq_ids) - 1):
+                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        prev_id = seq_ids[-1]
+
+        # Handle repeat loops
+        elif "repeat" in action:
+            repeat_id = self._generate_node_id("action")
+            repeat_config = action.get("repeat", {})
+            
+            # Determine repeat type
+            repeat_label = "Repeat"
+            if "count" in repeat_config:
+                repeat_label = f"Repeat {repeat_config['count']}x"
+            elif "while" in repeat_config:
+                repeat_label = "Repeat while..."
+            elif "until" in repeat_config:
+                repeat_label = "Repeat until..."
+            
+            node = AutomationNode(
+                id=repeat_id,
+                label=repeat_label,
+                type=COMP_TYPE_ACTION,
+                data={"type": "repeat", "config": repeat_config},
+                color=COLORS[COMP_TYPE_ACTION],
+            )
+            graph.nodes.append(node)
+            action_ids.append(repeat_id)
+
+            # Process repeat sequence
+            sequence = repeat_config.get("sequence", [])
+            if not isinstance(sequence, list):
+                sequence = [sequence] if sequence else []
+
+            prev_id = repeat_id
+            for seq_idx, seq_action in enumerate(sequence):
+                seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=repeat_id)
+                if seq_ids:
+                    if prev_id == repeat_id:
+                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="loop"))
+                    else:
+                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                    for i in range(len(seq_ids) - 1):
+                        graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                    prev_id = seq_ids[-1]
+
+        # Handle regular actions
+        else:
+            action_id = self._generate_node_id("action")
+            label = self._format_action_label(action, index)
 
             node = AutomationNode(
                 id=action_id,
@@ -271,6 +517,109 @@ class AutomationGraphParser:
             action_ids.append(action_id)
 
         return action_ids
+
+    def _summarize_conditions(self, conditions: list[dict[str, Any]]) -> str:
+        """Create a summary of conditions for display.
+
+        Args:
+            conditions: List of condition configurations
+
+        Returns:
+            str: Summary string
+        """
+        if not conditions:
+            return "condition"
+        
+        if len(conditions) == 1:
+            cond = conditions[0]
+            cond_type = cond.get("condition", "unknown")
+            
+            if cond_type == "state":
+                entity = cond.get("entity_id", "entity")
+                state = cond.get("state", "")
+                if state:
+                    return f"{entity} = {state}"
+                return entity
+            
+            elif cond_type == "numeric_state":
+                entity = cond.get("entity_id", "entity")
+                above = cond.get("above", "")
+                below = cond.get("below", "")
+                if above and below:
+                    return f"{entity}: {below} < x < {above}"
+                elif above:
+                    return f"{entity} > {above}"
+                elif below:
+                    return f"{entity} < {below}"
+                return f"{entity} numeric"
+            
+            elif cond_type == "template":
+                template = cond.get("value_template", "")
+                if template and len(template) < 40:
+                    return f"template: {template}"
+                return "template"
+            
+            elif cond_type == "time":
+                after = cond.get("after", "")
+                before = cond.get("before", "")
+                if after and before:
+                    return f"time: {after}-{before}"
+                elif after:
+                    return f"time after {after}"
+                elif before:
+                    return f"time before {before}"
+                return "time condition"
+            
+            elif cond_type == "sun":
+                after = cond.get("after", "")
+                before = cond.get("before", "")
+                if after and before:
+                    return f"sun: {after}-{before}"
+                elif after:
+                    return f"sun after {after}"
+                elif before:
+                    return f"sun before {before}"
+                return "sun condition"
+            
+            elif cond_type == "zone":
+                entity = cond.get("entity_id", "entity")
+                zone = cond.get("zone", "zone")
+                return f"{entity} in {zone}"
+            
+            elif cond_type == "device":
+                device_type = cond.get("type", "")
+                if device_type:
+                    return f"device: {device_type}"
+                return "device condition"
+            
+            elif cond_type == "or":
+                sub_conditions = cond.get("conditions", [])
+                return f"any of {len(sub_conditions)}"
+            
+            elif cond_type == "and":
+                sub_conditions = cond.get("conditions", [])
+                return f"all of {len(sub_conditions)}"
+            
+            elif cond_type == "not":
+                return "NOT condition"
+            
+            else:
+                return cond_type
+        
+        else:
+            # Multiple conditions - show first one + count
+            first_cond = conditions[0]
+            cond_type = first_cond.get("condition", "")
+            if cond_type == "state":
+                entity = first_cond.get("entity_id", "")
+                if entity:
+                    return f"{entity}... +{len(conditions)-1} more"
+            elif cond_type == "numeric_state":
+                entity = first_cond.get("entity_id", "")
+                if entity:
+                    return f"{entity}... +{len(conditions)-1} more"
+            
+            return f"{len(conditions)} conditions"
 
     def _build_edges(
         self,
@@ -351,27 +700,153 @@ class AutomationGraphParser:
         Returns:
             str: Formatted label
         """
-        platform = trigger.get("platform", "unknown")
+        platform = trigger.get("platform", "")
 
+        # Handle state triggers
         if platform == "state":
-            entity_id = trigger.get("entity_id", "unknown")
+            entity_id = trigger.get("entity_id", [])
+            # Handle multiple entities
+            if isinstance(entity_id, list):
+                entity_str = ", ".join(entity_id) if len(entity_id) <= 2 else f"{entity_id[0]} +{len(entity_id)-1}"
+            else:
+                entity_str = str(entity_id)
+            
             to_state = trigger.get("to", "")
-            if to_state:
-                return f"State: {entity_id} → {to_state}"
-            return f"State: {entity_id}"
+            from_state = trigger.get("from", "")
+            
+            if to_state and from_state:
+                return f"State: {entity_str}\n{from_state} → {to_state}"
+            elif to_state:
+                return f"State: {entity_str} → {to_state}"
+            elif from_state:
+                return f"State: {entity_str}\nfrom {from_state}"
+            else:
+                return f"State: {entity_str}"
+        
+        # Handle time triggers
         elif platform == "time":
-            at_time = trigger.get("at", "unknown")
-            return f"Time: {at_time}"
+            at_time = trigger.get("at", "")
+            if at_time:
+                if isinstance(at_time, list):
+                    at_time = ", ".join(str(t) for t in at_time)
+                return f"Time: {at_time}"
+            return "Time trigger"
+        
+        # Handle sun triggers
         elif platform == "sun":
             event = trigger.get("event", "rise")
+            offset = trigger.get("offset", "")
+            if offset:
+                return f"Sun: {event} {offset}"
             return f"Sun: {event}"
+        
+        # Handle numeric state triggers
         elif platform == "numeric_state":
-            entity_id = trigger.get("entity_id", "unknown")
-            return f"Numeric: {entity_id}"
+            entity_id = trigger.get("entity_id", [])
+            if isinstance(entity_id, list):
+                entity_str = ", ".join(entity_id) if len(entity_id) <= 2 else f"{entity_id[0]} +{len(entity_id)-1}"
+            else:
+                entity_str = str(entity_id)
+            
+            above = trigger.get("above", "")
+            below = trigger.get("below", "")
+            
+            if above and below:
+                return f"Numeric: {entity_str}\n{below} < value < {above}"
+            elif above:
+                return f"Numeric: {entity_str} > {above}"
+            elif below:
+                return f"Numeric: {entity_str} < {below}"
+            else:
+                return f"Numeric: {entity_str}"
+        
+        # Handle template triggers
         elif platform == "template":
-            return f"Template trigger"
-        else:
-            return f"Trigger: {platform} #{index + 1}"
+            value_template = trigger.get("value_template", "")
+            if value_template and len(value_template) < 30:
+                return f"Template:\n{value_template}"
+            return "Template trigger"
+        
+        # Handle time pattern triggers
+        elif platform == "time_pattern":
+            hours = trigger.get("hours", "*")
+            minutes = trigger.get("minutes", "*")
+            seconds = trigger.get("seconds", "*")
+            return f"Time pattern:\n{hours}:{minutes}:{seconds}"
+        
+        # Handle webhook triggers
+        elif platform == "webhook":
+            webhook_id = trigger.get("webhook_id", "")
+            return f"Webhook: {webhook_id}" if webhook_id else "Webhook trigger"
+        
+        # Handle event triggers
+        elif platform == "event":
+            event_type = trigger.get("event_type", "")
+            return f"Event: {event_type}" if event_type else "Event trigger"
+        
+        # Handle MQTT triggers
+        elif platform == "mqtt":
+            topic = trigger.get("topic", "")
+            return f"MQTT: {topic}" if topic else "MQTT trigger"
+        
+        # Handle zone triggers
+        elif platform == "zone":
+            entity_id = trigger.get("entity_id", "")
+            zone = trigger.get("zone", "")
+            event = trigger.get("event", "enter")
+            if entity_id and zone:
+                return f"Zone: {entity_id}\n{event} {zone}"
+            return "Zone trigger"
+        
+        # Handle geo_location triggers
+        elif platform == "geo_location":
+            source = trigger.get("source", "")
+            return f"Geo: {source}" if source else "Geo location trigger"
+        
+        # Handle homeassistant triggers
+        elif platform == "homeassistant":
+            event = trigger.get("event", "start")
+            return f"Home Assistant: {event}"
+        
+        # Handle device triggers
+        elif platform == "device":
+            device_id = trigger.get("device_id", "")
+            domain = trigger.get("domain", "")
+            trigger_type = trigger.get("type", "")
+            if trigger_type:
+                return f"Device: {trigger_type}"
+            elif domain:
+                return f"Device: {domain}"
+            return "Device trigger"
+        
+        # Handle tag triggers
+        elif platform == "tag":
+            tag_id = trigger.get("tag_id", "")
+            return f"Tag: {tag_id}" if tag_id else "Tag scanned"
+        
+        # Handle calendar triggers
+        elif platform == "calendar":
+            entity_id = trigger.get("entity_id", "")
+            event = trigger.get("event", "start")
+            return f"Calendar: {entity_id}\n{event}"
+        
+        # Fallback for unknown or unhandled platforms
+        elif platform:
+            return f"Trigger: {platform}"
+        
+        # Last resort - check for 'id' or other identifying fields
+        trigger_id = trigger.get("id", "")
+        if trigger_id:
+            return f"Trigger: {trigger_id}"
+        
+        # If we still don't have anything meaningful, check if there's any data
+        if trigger:
+            # Try to get the first non-platform key as a hint
+            keys = [k for k in trigger.keys() if k not in ["platform", "id"]]
+            if keys:
+                return f"Trigger: {keys[0]}"
+        
+        return f"Trigger #{index + 1}"
 
     @staticmethod
     def _format_condition_label(condition: dict[str, Any], index: int) -> str:
@@ -435,25 +910,155 @@ class AutomationGraphParser:
             # Simple string action (service call)
             return f"Action: {action}"
 
+        # Service calls
         if "service" in action:
             service = action.get("service", "unknown")
-            # Format: domain.service
-            return f"Service: {service}"
+            
+            # Extract target information
+            target_info = ""
+            target = action.get("target", {})
+            data = action.get("data", {})
+            
+            # Try to get entity_id from various places
+            entity_id = None
+            if isinstance(target, dict):
+                entity_id = target.get("entity_id")
+            elif "entity_id" in action:
+                entity_id = action.get("entity_id")
+            elif isinstance(data, dict) and "entity_id" in data:
+                entity_id = data.get("entity_id")
+            
+            # Format entity_id for display
+            if entity_id:
+                if isinstance(entity_id, list):
+                    if len(entity_id) == 1:
+                        target_info = f"\n{entity_id[0]}"
+                    elif len(entity_id) <= 3:
+                        target_info = f"\n{', '.join(entity_id)}"
+                    else:
+                        target_info = f"\n{entity_id[0]} +{len(entity_id)-1} more"
+                else:
+                    target_info = f"\n{entity_id}"
+            
+            # Check for area or device targets
+            elif isinstance(target, dict):
+                if "area_id" in target:
+                    area = target.get("area_id")
+                    if isinstance(area, list):
+                        target_info = f"\nArea: {', '.join(area)}"
+                    else:
+                        target_info = f"\nArea: {area}"
+                elif "device_id" in target:
+                    device = target.get("device_id")
+                    if isinstance(device, list):
+                        target_info = f"\n{len(device)} devices"
+                    else:
+                        target_info = f"\nDevice: {device}"
+            
+            # Add data hints for common services
+            if isinstance(data, dict) and not target_info:
+                if "message" in data:
+                    msg = str(data["message"])
+                    if len(msg) > 30:
+                        msg = msg[:30] + "..."
+                    target_info = f"\n\"{msg}\""
+                elif "brightness" in data:
+                    target_info = f"\nBrightness: {data['brightness']}"
+                elif "temperature" in data or "rgb_color" in data or "kelvin" in data:
+                    target_info = "\n(color/temp)"
+            
+            return f"{service}{target_info}"
+        
+        # Delay
         elif "delay" in action:
             delay_str = action.get("delay", "unknown")
+            if isinstance(delay_str, dict):
+                # Handle delay as dict (hours, minutes, seconds)
+                hours = delay_str.get("hours", 0)
+                minutes = delay_str.get("minutes", 0)
+                seconds = delay_str.get("seconds", 0)
+                parts = []
+                if hours:
+                    parts.append(f"{hours}h")
+                if minutes:
+                    parts.append(f"{minutes}m")
+                if seconds:
+                    parts.append(f"{seconds}s")
+                delay_str = " ".join(parts) if parts else "0s"
             return f"Delay: {delay_str}"
+        
+        # Wait for template
         elif "wait_template" in action:
+            template = action.get("wait_template", "")
+            timeout = action.get("timeout", "")
+            if timeout:
+                return f"Wait (timeout: {timeout})"
             return "Wait for template"
+        
+        # Wait for trigger
+        elif "wait_for_trigger" in action:
+            timeout = action.get("timeout", "")
+            if timeout:
+                return f"Wait for trigger\n(timeout: {timeout})"
+            return "Wait for trigger"
+        
+        # Event
+        elif "event" in action:
+            event_name = action.get("event", "unknown")
+            return f"Fire event: {event_name}"
+        
+        # Scene
+        elif "scene" in action:
+            scene = action.get("scene", "unknown")
+            return f"Scene: {scene}"
+        
+        # Device action
+        elif "device_id" in action:
+            device_type = action.get("type", "")
+            domain = action.get("domain", "")
+            if device_type:
+                return f"Device: {device_type}"
+            elif domain:
+                return f"Device: {domain}"
+            return "Device action"
+        
+        # Stop action
+        elif "stop" in action:
+            stop_msg = action.get("stop", "")
+            if stop_msg:
+                return f"Stop: {stop_msg}"
+            return "Stop"
+        
+        # Variables
+        elif "variables" in action:
+            var_dict = action.get("variables", {})
+            if isinstance(var_dict, dict):
+                var_names = list(var_dict.keys())
+                if len(var_names) == 1:
+                    return f"Set variable: {var_names[0]}"
+                elif len(var_names) <= 3:
+                    return f"Set variables:\n{', '.join(var_names)}"
+                else:
+                    return f"Set {len(var_names)} variables"
+            return "Set variables"
+        
+        # These shouldn't appear here as they're handled in _process_action_recursive
+        # but keep them as fallback
         elif "choose" in action:
             return "Choose/If-Then"
         elif "parallel" in action:
             return "Parallel actions"
         elif "repeat" in action:
             return "Repeat loop"
-        elif "scene" in action:
-            scene = action.get("scene", "unknown")
-            return f"Scene: {scene}"
+        elif "if" in action:
+            return "If condition"
+        
+        # Unknown action - try to find any identifying info
         else:
+            # Check for any keys that might give us a hint
+            action_keys = [k for k in action.keys() if k not in ["alias", "enabled", "continue_on_error"]]
+            if action_keys:
+                return f"Action: {action_keys[0]}"
             return f"Action #{index + 1}"
 
 

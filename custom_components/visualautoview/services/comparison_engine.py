@@ -375,7 +375,7 @@ class ComparisonEngine:
         self,
         list1: List[Dict[str, Any]],
         list2: List[Dict[str, Any]],
-        component_type: str,
+        component_type: Literal["trigger", "condition", "action", "metadata"],
     ) -> List[DiffItem]:
         """
         Generate diff for component lists (triggers, conditions, actions).

@@ -83,7 +83,7 @@ class SearchEngine:
     def __init__(self, hass):
         """Initialize search engine."""
         self.hass = hass
-        self._search_index: Dict[str, Any] = {
+        self._index: Dict[str, Any] = {
             "metadata": {},  # automation_id -> [alias, description]
             "entities": {},  # entity_id -> [automation_ids]
             "services": {},  # service -> [automation_ids]
@@ -251,10 +251,10 @@ class SearchEngine:
         try:
             return {
                 "automation_states": ["enabled", "disabled"],
-                "trigger_platforms": list(self._search_index["triggers"].keys()),
-                "condition_types": list(self._search_index["conditions"].keys()),
-                "entity_ids": list(self._search_index["entities"].keys()),
-                "services": list(self._search_index["services"].keys()),
+                "trigger_platforms": list(self._index["triggers"].keys()),
+                "condition_types": list(self._index["conditions"].keys()),
+                "entity_ids": list(self._index["entities"].keys()),
+                "services": list(self._index["services"].keys()),
             }
 
         except Exception as err:
@@ -264,7 +264,7 @@ class SearchEngine:
     def invalidate_index(self) -> None:
         """Invalidate the search index."""
         self._index_built = False
-        self._search_index.clear()
+        self._index.clear()
         _LOGGER.debug("Search index invalidated")
 
 

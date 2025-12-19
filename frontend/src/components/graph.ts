@@ -130,81 +130,102 @@ export class GraphVisualization extends LitElement {
   }
 
   firstUpdated() {
-    this.initializeGraph();
+    console.log('firstUpdated called');
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      this.initializeGraph();
+    }, 0);
   }
 
   updated(changedProperties: Map<string, any>) {
+    console.log('Graph component updated, changedProperties:', changedProperties);
+    console.log('Current nodes:', this.nodes);
+    console.log('Current edges:', this.edges);
     if (changedProperties.has('nodes') || changedProperties.has('edges')) {
+      console.log('Nodes or edges changed, updating graph');
       this.updateGraph();
     }
   }
 
   private initializeGraph() {
-    if (!this.graphContainer) return;
+    const container = this.renderRoot.querySelector('#graph-container') as HTMLElement;
+    if (!container) {
+      console.error('Graph container not found!');
+      return;
+    }
 
-    const nodes = new DataSet(this.getStyledNodes());
-    const edges = new DataSet(this.edges as any);
+    console.log('Initializing graph with nodes:', this.nodes, 'edges:', this.edges);
 
-    const options = {
-      physics: {
-        enabled: true,
-        stabilization: {
-          iterations: 200,
-        },
-      },
-      nodes: {
-        font: {
-          size: 14,
-          color: 'black',
-        },
-        borderWidth: 2,
-        borderWidthSelected: 4,
-      },
-      edges: {
-        arrows: {
-          to: {
-            enabled: true,
-            scaleFactor: 0.5,
+    try {
+      const nodes = new DataSet(this.getStyledNodes());
+      const edges = new DataSet(this.edges as any);
+
+      console.log('DataSets created. Nodes count:', nodes.length, 'Edges count:', edges.length);
+
+      const options = {
+        physics: {
+          enabled: true,
+          stabilization: {
+            iterations: 200,
           },
         },
-        smooth: {
-          enabled: true,
-          type: 'continuous',
-          roundness: 0.5,
+        nodes: {
+          font: {
+            size: 14,
+            color: 'black',
+          },
+          borderWidth: 2,
+          borderWidthSelected: 4,
         },
-        color: {
-          color: '#999',
-          highlight: '#2196F3',
-          hover: '#666',
+        edges: {
+          arrows: {
+            to: {
+              enabled: true,
+              scaleFactor: 0.5,
+            },
+          },
+          smooth: {
+            enabled: true,
+            type: 'continuous',
+            roundness: 0.5,
+          },
+          color: {
+            color: '#999',
+            highlight: '#2196F3',
+            hover: '#666',
+          },
+          width: 2,
+          hoverWidth: 3,
         },
-        width: 2,
-        hoverWidth: 3,
-      },
-      interaction: {
-        navigationButtons: true,
-        keyboard: true,
-        zoomView: true,
-        dragView: true,
-      },
-    };
+        interaction: {
+          navigationButtons: true,
+          keyboard: true,
+          zoomView: true,
+          dragView: true,
+        },
+      };
 
-    this.network = new Network(this.graphContainer, { nodes, edges } as any, options);
+      this.network = new Network(container, { nodes, edges } as any, options);
+      console.log('Network created successfully');
 
-    // Event listeners
-    if (this.network) {
-      this.network.on('click', (params) => {
-        const event = new CustomEvent('graph-click', {
-          detail: params,
+      // Event listeners
+      if (this.network) {
+        this.network.on('click', (params) => {
+          const event = new CustomEvent('graph-click', {
+            detail: params,
+          });
+          this.dispatchEvent(event);
         });
-        this.dispatchEvent(event);
-      });
 
-      this.network.on('doubleClick', (params) => {
-        const event = new CustomEvent('graph-doubleclick', {
-          detail: params,
+        this.network.on('doubleClick', (params) => {
+          const event = new CustomEvent('graph-doubleclick', {
+            detail: params,
+          });
+          this.dispatchEvent(event);
         });
-        this.dispatchEvent(event);
-      });
+      }
+    } catch (error) {
+      console.error('Error initializing graph:', error);
     }
   }
 

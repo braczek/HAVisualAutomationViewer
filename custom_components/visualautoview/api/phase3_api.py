@@ -1,14 +1,9 @@
 """Phase 3 API Endpoints - Advanced Analytics and Visualization."""
 
 import logging
+from http import HTTPStatus
 from typing import Any, Dict, List, Optional
 
-from homeassistant.const import (
-    HTTP_BAD_REQUEST,
-    HTTP_INTERNAL_SERVER_ERROR,
-    HTTP_NOT_FOUND,
-    HTTP_OK,
-)
 from homeassistant.core import HomeAssistant
 
 from .base import ApiErrorHandler, RestApiEndpoint
@@ -112,11 +107,11 @@ class GetEntityRelationshipsEndpoint(RestApiEndpoint):
                 "total_relationships": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetEntityDependenciesEndpoint(RestApiEndpoint):
@@ -139,11 +134,11 @@ class GetEntityDependenciesEndpoint(RestApiEndpoint):
                 "total_dependencies": 0,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class AnalyzeEntityImpactEndpoint(RestApiEndpoint):
@@ -168,11 +163,11 @@ class AnalyzeEntityImpactEndpoint(RestApiEndpoint):
                 "recommendations": [],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -231,11 +226,11 @@ class GetDependencyGraphEndpoint(RestApiEndpoint):
                 },
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetDependencyChainsEndpoint(RestApiEndpoint):
@@ -243,6 +238,12 @@ class GetDependencyChainsEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase3/dependency-chains"
     name = "api:visualautoview:dependency_chains"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Get dependency chains between entities."""
@@ -252,7 +253,7 @@ class GetDependencyChainsEndpoint(RestApiEndpoint):
 
             if not body or "source" not in body or "target" not in body:
                 return self.error_response(
-                    "Missing fields: source, target", HTTP_BAD_REQUEST
+                    "Missing fields: source, target", HTTPStatus.BAD_REQUEST
                 )
 
             result = {
@@ -268,11 +269,11 @@ class GetDependencyChainsEndpoint(RestApiEndpoint):
                 "total_chains": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class FindCircularDependenciesEndpoint(RestApiEndpoint):
@@ -292,11 +293,11 @@ class FindCircularDependenciesEndpoint(RestApiEndpoint):
                 "severity": "none",
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -355,11 +356,11 @@ class GetExecutionPathEndpoint(RestApiEndpoint):
                 "total_paths": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class SimulateExecutionEndpoint(RestApiEndpoint):
@@ -368,6 +369,12 @@ class SimulateExecutionEndpoint(RestApiEndpoint):
     url = "/api/visualautoview/phase3/simulate-execution"
     name = "api:visualautoview:simulate_execution"
 
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
+
     async def post(self, request) -> tuple:
         """Simulate automation execution."""
         try:
@@ -375,7 +382,7 @@ class SimulateExecutionEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body:
-                return self.error_response("Invalid request", HTTP_BAD_REQUEST)
+                return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
 
             result = {
                 "simulation_id": "sim_001",
@@ -386,11 +393,11 @@ class SimulateExecutionEndpoint(RestApiEndpoint):
                 "execution_time_ms": 145,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetExecutionHistoryEndpoint(RestApiEndpoint):
@@ -418,11 +425,11 @@ class GetExecutionHistoryEndpoint(RestApiEndpoint):
                 "failure_count": 0,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -482,11 +489,11 @@ class GetPerformanceMetricsEndpoint(RestApiEndpoint):
                 "period_days": period_days,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetExecutionTimeMetricsEndpoint(RestApiEndpoint):
@@ -518,11 +525,11 @@ class GetExecutionTimeMetricsEndpoint(RestApiEndpoint):
                 },
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetPerformanceTrendsEndpoint(RestApiEndpoint):
@@ -548,11 +555,11 @@ class GetPerformanceTrendsEndpoint(RestApiEndpoint):
                 "time_series": [],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetSystemPerformanceEndpoint(RestApiEndpoint):
@@ -578,11 +585,11 @@ class GetSystemPerformanceEndpoint(RestApiEndpoint):
                 "health_status": "healthy",
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -642,11 +649,11 @@ class GetTemplateVariablesEndpoint(RestApiEndpoint):
                 ],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
@@ -655,6 +662,12 @@ class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
     url = "/api/visualautoview/phase3/preview-template"
     name = "api:visualautoview:preview_template"
 
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
+
     async def post(self, request) -> tuple:
         """Preview template expansion."""
         try:
@@ -662,7 +675,7 @@ class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body or "template" not in body:
-                return self.error_response("Missing field: template", HTTP_BAD_REQUEST)
+                return self.error_response("Missing field: template", HTTPStatus.BAD_REQUEST)
 
             result = {
                 "template": body["template"],
@@ -670,11 +683,11 @@ class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
                 "valid": True,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class ValidateTemplateExpressionEndpoint(RestApiEndpoint):
@@ -683,6 +696,12 @@ class ValidateTemplateExpressionEndpoint(RestApiEndpoint):
     url = "/api/visualautoview/phase3/validate-template"
     name = "api:visualautoview:validate_template"
 
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
+
     async def post(self, request) -> tuple:
         """Validate template."""
         try:
@@ -690,7 +709,7 @@ class ValidateTemplateExpressionEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body:
-                return self.error_response("Invalid request", HTTP_BAD_REQUEST)
+                return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
 
             result = {
                 "valid": True,
@@ -698,11 +717,11 @@ class ValidateTemplateExpressionEndpoint(RestApiEndpoint):
                 "warnings": [],
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class EvaluateTemplateScenarioEndpoint(RestApiEndpoint):
@@ -710,6 +729,12 @@ class EvaluateTemplateScenarioEndpoint(RestApiEndpoint):
 
     url = "/api/visualautoview/phase3/template-scenario"
     name = "api:visualautoview:template_scenario"
+
+    async def get(self, request) -> tuple:
+        """GET not supported - use POST."""
+        return self.error_response(
+            "GET not supported. Use POST with request data.", HTTPStatus.BAD_REQUEST
+        )
 
     async def post(self, request) -> tuple:
         """Evaluate template scenario."""
@@ -724,11 +749,11 @@ class EvaluateTemplateScenarioEndpoint(RestApiEndpoint):
                 "execution_time_ms": 5,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # ============================================================================
@@ -763,11 +788,11 @@ class GetAutomationComplexityMetricsEndpoint(RestApiEndpoint):
                 "readability_score": 7.8,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class AnalyzeAutomationPatternsEndpoint(RestApiEndpoint):
@@ -794,11 +819,11 @@ class AnalyzeAutomationPatternsEndpoint(RestApiEndpoint):
                 "total_patterns": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 class GetRecommendationsEndpoint(RestApiEndpoint):
@@ -858,8 +883,8 @@ class GetRecommendationsEndpoint(RestApiEndpoint):
                 "total_recommendations": 1,
             }
 
-            self.log_response(HTTP_OK)
-            return self.json_response(result, HTTP_OK)
+            self.log_response(HTTPStatus.OK)
+            return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
-            return ApiErrorHandler.handle_error(e, HTTP_INTERNAL_SERVER_ERROR)
+            return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)

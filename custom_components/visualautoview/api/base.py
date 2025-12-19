@@ -6,14 +6,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Callable, Dict, Optional
 
+from http import HTTPStatus
+
 from homeassistant.components.http import HomeAssistantView
-from homeassistant.const import (
-    HTTP_BAD_REQUEST,
-    HTTP_CREATED,
-    HTTP_INTERNAL_SERVER_ERROR,
-    HTTP_NOT_FOUND,
-    HTTP_OK,
-)
 from homeassistant.core import HomeAssistant
 
 from .models import ApiResponse, ErrorResponse, SerializationHelper
@@ -44,11 +39,11 @@ class BaseApiView(HomeAssistantView, ABC):
         self._logger.debug(f"Response {status}" + (f" - {message}" if message else ""))
 
     def json_response(
-        self, data: Any, status: int = HTTP_OK, message: str = ""
+        self, data: Any, status: int = HTTPStatus.OK, message: str = ""
     ) -> tuple:
         """Create a JSON response."""
         response = ApiResponse(
-            success=status in (HTTP_OK, HTTP_CREATED),
+            success=status in (HTTPStatus.OK, HTTPStatus.CREATED),
             data=data,
             message=message,
             timestamp=datetime.utcnow(),
@@ -57,7 +52,7 @@ class BaseApiView(HomeAssistantView, ABC):
         return (response.to_json(), status)
 
     def error_response(
-        self, error: str, status: int = HTTP_BAD_REQUEST, message: str = ""
+        self, error: str, status: int = HTTPStatus.BAD_REQUEST, message: str = ""
     ) -> tuple:
         """Create an error response."""
         response = ErrorResponse(
@@ -97,22 +92,21 @@ class BaseApiView(HomeAssistantView, ABC):
 class RestApiEndpoint(BaseApiView):
     """Base class for REST API endpoints."""
 
-    @abstractmethod
     async def get(self, request) -> tuple:
         """Handle GET request."""
-        raise NotImplementedError
+        return self.error_response("GET not supported", HTTPStatus.METHOD_NOT_ALLOWED)
 
     async def post(self, request) -> tuple:
         """Handle POST request."""
-        return self.error_response("POST not supported", HTTP_BAD_REQUEST)
+        return self.error_response("POST not supported", HTTPStatus.METHOD_NOT_ALLOWED)
 
     async def put(self, request) -> tuple:
         """Handle PUT request."""
-        return self.error_response("PUT not supported", HTTP_BAD_REQUEST)
+        return self.error_response("PUT not supported", HTTPStatus.METHOD_NOT_ALLOWED)
 
     async def delete(self, request) -> tuple:
         """Handle DELETE request."""
-        return self.error_response("DELETE not supported", HTTP_BAD_REQUEST)
+        return self.error_response("DELETE not supported", HTTPStatus.METHOD_NOT_ALLOWED)
 
 
 class WebSocketHandler(ABC):
@@ -208,16 +202,13 @@ class ApiRegistry:
 
     async def register_with_http(self):
         """Register all endpoints with Home Assistant HTTP."""
-        from homeassistant.components.http import HomeAssistantHTTP
-
         try:
-            http = self.hass.data.get("http")
-            if http:
-                for url, endpoint in self._endpoints.items():
-                    self.hass.http.register_view(endpoint)
-                    self._logger.info(f"Registered HTTP view: {url}")
+            for url, endpoint in self._endpoints.items():
+                self.hass.http.register_view(endpoint)
+                self._logger.info(f"Registered HTTP view: {url}")
         except Exception as e:
-            self._logger.error(f"Failed to register HTTP endpoints: {e}")
+            self._logger.error(f"Failed to register HTTP endpoints: {e}", exc_info=True)
+            raise
 
 
 class ApiErrorHandler:
@@ -225,7 +216,7 @@ class ApiErrorHandler:
 
     @staticmethod
     def handle_error(
-        error: Exception, status: int = HTTP_INTERNAL_SERVER_ERROR
+        error: Exception, status: int = HTTPStatus.INTERNAL_SERVER_ERROR
     ) -> tuple:
         """Handle and log an error."""
         error_msg = str(error)

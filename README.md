@@ -86,18 +86,101 @@ Total:          5,081+ lines of production code
 ## 🚀 Quick Start
 
 ### Installation
+
+#### Option 1: HACS (Recommended)
+1. Open HACS in your Home Assistant
+2. Go to "Integrations"
+3. Click the three dots in the top right
+4. Select "Custom repositories"
+5. Add this repository URL
+6. Search for "Visual AutoView"
+7. Click "Install"
+8. Restart Home Assistant
+
+#### Option 2: Manual Installation (Home Assistant OS)
+1. Access your Home Assistant configuration folder via:
+   - **Samba share**: `\\your-ha-ip\config`
+   - **SSH/Terminal addon**: Navigate to `/config`
+   - **File editor addon**: Use the built-in file browser
+2. Create `custom_components` folder if it doesn't exist
+3. Copy the `visualautoview` folder into `config/custom_components/`
+4. Your structure should be: `config/custom_components/visualautoview/`
+5. Add to your `configuration.yaml`:
+   ```yaml
+   visualautoview:
+   ```
+6. **Optional: Add sidebar panel** - Add this separately in `configuration.yaml`:
+   ```yaml
+   panel_iframe:
+     visualautoview:
+       title: "Visual AutoView"
+       icon: mdi:graph
+       url: "/local/visualautoview/index.html"
+   ```
+7. Restart Home Assistant
+8. After restart, the API will be available at: `http://your-ha-ip:8123/api/visualautoview/`
+
+#### Option 3: Manual Installation (Home Assistant Core)
 ```bash
 # Copy backend to Home Assistant
 cp -r custom_components/visualautoview ~/.homeassistant/custom_components/
 
+# Restart Home Assistant
+```
+
+### Accessing Visual AutoView
+
+After installation and restart, follow these steps to access the Visual AutoView interface:
+
+#### Step 1: Build the Frontend
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+#### Step 2: Copy Frontend to Home Assistant
+```bash
+# Copy the built frontend to your HA www folder
+cp -r dist \\192.168.1.7\config\www\visualautoview
+```
+
+#### Step 3: Restart Home Assistant
+After copying, restart Home Assistant one more time.
+
+#### Step 4: Access the Interface
+
+**Option A: Add to Sidebar (Recommended)**
+1. Add this to your `configuration.yaml` (at the root level, NOT inside visualautoview):
+   ```yaml
+   # Visual AutoView integration
+   visualautoview:
+   
+   # Sidebar panel (separate section)
+   panel_iframe:
+     visualautoview:
+       title: "Visual AutoView"
+       icon: mdi:graph
+       url: "/local/visualautoview/index.html"
+   ```
+2. Restart Home Assistant
+3. Look for "Visual AutoView" in your sidebar
+
+**Option B: Direct Access**
+- Open in browser: http://192.168.1.7:8123/local/visualautoview/index.html
+
+**API Endpoints:**
+- Base URL: http://192.168.1.7:8123/api/visualautoview/
+- Documentation: [API_IMPLEMENTATION_COMPLETE.md](API_IMPLEMENTATION_COMPLETE.md)
+
+### Frontend Development
+```bash
 # Install frontend dependencies
 cd frontend
 npm install
 
 # Build frontend
 npm run build
-
-# Restart Home Assistant
 ```
 
 ### Development
