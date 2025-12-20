@@ -1,9 +1,12 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        type: string
 
 jobs:
   release:
@@ -45,9 +48,9 @@ jobs:
     - name: Generate changelog
       id: changelog
       run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
+        VERSION=${{ github.event.inputs.version }}
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-        git log --oneline --no-decorate $(git describe --tags --abbrev=0 HEAD^)..HEAD > changelog.txt || echo "Initial release" > changelog.txt
+        git log --oneline --no-decorate $(git describe --tags --abbrev=0)..HEAD > changelog.txt || echo "Release $VERSION" > changelog.txt
     
     - name: Create release archive
       run: |
@@ -71,10 +74,10 @@ jobs:
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: visualautoview-${{ steps.changelog.outputs.version }}.zip,visualautoview.zip
+        artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
         bodyFile: changelog.txt
         draft: false
         prerelease: false
-        tag: ${{ github.ref_name }}
+        tag: v${{ github.event.inputs.version }}
         allowUpdates: true
         skipIfReleaseExists: false
