@@ -1,103 +1,59 @@
-# Visual AutoView - Home Assistant Automation Visualization
+# Visual AutoView - Automation Graph Visualization for Home Assistant
 
 **Status**: ✅ **PRODUCTION READY**  
-**Version**: 1.0.1  
-**Date**: December 19, 2025
+**Version**: 1.0.1
 
----
+## 📖 About
 
-## 📚 Documentation Guide
-
-This repository contains all necessary files for the Visual AutoView integration. Here's what each document covers:
-
-### 🚀 Installation & Setup
-1. **[INSTALL_QUICK.md](INSTALL_QUICK.md)** ← **FASTEST START**
-   - One-line installation commands
-   - Quick copy-paste installers
-   
-2. **[AUTOMATED_INSTALL.md](AUTOMATED_INSTALL.md)** ← **RECOMMENDED**
-   - Complete automation guide
-   - All installation methods explained
-   - Comparison and troubleshooting
-   
-3. **[INSTALLATION.md](INSTALLATION.md)**
-   - Detailed installation instructions
-   - Manual installation steps
-   - Platform-specific guides
-
-### 🏁 Getting Started
-1. **[QUICK_START.md](QUICK_START.md)**
-   - Project overview
-   - Development setup
-   - API endpoint reference
-   - Troubleshooting guide
-
-### 📋 Implementation Status
-2. **[FINAL_STATUS_REPORT.md](FINAL_STATUS_REPORT.md)**
-   - Current project status
-   - What was completed
-   - Key metrics and statistics
-   - Production readiness checklist
-
-3. **[IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md)**
-   - Complete implementation details
-   - All components and endpoints listed
-   - Code architecture overview
-   - Quality assurance information
-
-### 🔧 Technical Reference
-4. **[API_IMPLEMENTATION_COMPLETE.md](API_IMPLEMENTATION_COMPLETE.md)**
-   - All 45+ REST API endpoints documented
-   - Request/response examples
-   - Integration points
-   - Feature descriptions
-
-### 📅 Phase Documentation
-5. **[PHASE1_IMPLEMENTATION.md](PHASE1_IMPLEMENTATION.md)** - Core graph parsing
-6. **[PHASE2_IMPLEMENTATION.md](PHASE2_IMPLEMENTATION.md)** - Dashboard & management
-7. **[PHASE3_IMPLEMENTATION.md](PHASE3_IMPLEMENTATION.md)** - Advanced analytics
-
-### 🎯 Next Steps
-8. **[POST_IMPLEMENTATION_CHECKLIST.md](POST_IMPLEMENTATION_CHECKLIST.md)**
-   - Pre-release testing checklist
-   - Deployment procedures
-   - Release planning template
-   - Support structure guidelines
-
----
-
-## 📊 Project Summary
-
-```
-Backend:        3,071 lines (7 files)
-├── Phase 1 API:  4 endpoints
-├── Phase 2 API: 20 endpoints
-└── Phase 3 API: 21+ endpoints
-
-Frontend:       2,010 lines (11 files)
-├── 7 main components
-├── API client (21+ methods)
-└── Build configuration
-
-Total:          5,081+ lines of production code
-```
-
----
+Visual AutoView is a Home Assistant integration that provides advanced visualization and analysis of automation flows. It helps you understand your automation logic through interactive graphs, search capabilities, and detailed analytics.
 
 ## ✨ Features
 
-- ✅ **Graph Visualization** - Interactive automation flow visualization
-- ✅ **Dashboard** - Automation management and overview
-- ✅ **Search & Filter** - Advanced search capabilities
-- ✅ **Analytics** - Performance metrics and analysis
-- ✅ **Export** - Multi-format export (JSON, YAML, CSV)
-- ✅ **Comparison** - Automation comparison and similarity
-- ✅ **Themes** - Custom theme management
-- ✅ **Entity Analysis** - Relationship and dependency tracking
+- **Interactive Graph Visualization** - See your automations as visual flowcharts
+- **Automation Dashboard** - Centralized view of all automations with management controls
+- **Advanced Search & Filter** - Quickly find automations by triggers, actions, and conditions
+- **Performance Analytics** - Monitor automation execution and performance metrics
+- **Multi-Format Export** - Export automations as JSON, YAML, or CSV
+- **Entity Relationship Analysis** - Track dependencies between entities and automations
+- **Comparison Tools** - Compare similarities and differences between automations
+- **Theme Management** - Customize the visual appearance
 
----
+## 🚀 Installation
 
-## 🚀 Quick Start
+### Automatic Installation (Recommended)
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.ps1 | iex
+```
+
+**Linux/macOS:**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.sh)
+```
+
+### Manual Installation
+
+1. Download the [latest release](https://github.com/braczek/HAVisualAutomationViewer/releases)
+2. Extract the `visualautoview` folder to your Home Assistant's `custom_components/` directory
+3. Restart Home Assistant
+4. Go to **Settings → Devices & Services** and look for "Visual AutoView" in the Integrations panel
+
+### Installation Verification
+
+Run the verification script to ensure everything is set up correctly:
+
+**Windows:**
+```powershell
+.\verify_install.ps1
+```
+
+**Linux/macOS:**
+```bash
+bash verify_install.sh
+```
+
+## 🎯 Quick Start
 
 ### Installation
 

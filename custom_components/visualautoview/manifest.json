@@ -1,4 +1,6 @@
 {
+    "domain": "visualautoview",
+    "name": "Visual AutoView - Automation Graph Visualization",
     "codeowners": [
         "@braczek"
     ],
@@ -7,10 +9,8 @@
         "http"
     ],
     "documentation": "https://github.com/braczek/HAVisualAutomationViewer",
-    "domain": "visualautoview",
     "iot_class": "calculated",
     "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
-    "name": "Visual AutoView - Automation Graph Visualization",
     "requirements": [],
     "version": "1.0.1"
 }
