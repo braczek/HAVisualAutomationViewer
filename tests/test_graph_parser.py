@@ -99,8 +99,8 @@ class TestAutomationEdge:
         )
 
         edge_dict = edge.to_dict()
-        assert edge_dict["from_node"] == "node_1"
-        assert edge_dict["to_node"] == "node_2"
+        assert edge_dict["from"] == "node_1"
+        assert edge_dict["to"] == "node_2"
 
 
 class TestAutomationGraph:

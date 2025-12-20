@@ -22,9 +22,8 @@ export class Dashboard extends LitElement {
   @property({ attribute: false }) hass: any; // Home Assistant object
   @property({ type: Object }) config: any = {};
   @property({ type: String }) preselectedAutomationId = '';
-  @property({ type: String }) selectedAutomation = '';
   @state() automations: Automation[] = [];
-  @state() selectedAutomationObj: Automation | null = null;
+  @state() selectedAutomation: Automation | null = null;
   @state() selectedAutomationDetails: any = null;
   @state() loading = false;
   @state() detailsLoading = false;
@@ -793,21 +792,8 @@ export class Dashboard extends LitElement {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      } else if (result.success && result.data?.data) {
-        // If no download URL, create a blob and download it
-        const blob = new Blob([JSON.stringify(result.data.data, null, 2)], {
-          type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${this.selectedAutomation.entity_id}_export.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
       } else {
-        this.error = 'Export failed: No data returned';
+        this.error = 'Export failed: No download URL returned';
       }
     } catch (err) {
       this.error = `Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
@@ -883,12 +869,12 @@ export class Dashboard extends LitElement {
     if (Array.isArray(data)) {
       if (data.length === 0) return '[]';
       const spaces = '  '.repeat(indent);
-      return data.map((item, idx) => {
-        if (typeof item === 'object') {
-          const formatted = this.formatYaml(item, indent + 1);
+      return data.map((_item) => {
+        if (typeof _item === 'object') {
+          const formatted = this.formatYaml(_item, indent + 1);
           return `${spaces}- ${formatted.replace(/^\s+/, '')}`;
         }
-        return `${spaces}- ${item}`;
+        return `${spaces}- ${_item}`;
       }).join('\n');
     }
 

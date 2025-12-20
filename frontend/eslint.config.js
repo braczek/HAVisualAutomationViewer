@@ -23,6 +23,11 @@ export default [
                 HTMLInputElement: 'readonly',
                 setTimeout: 'readonly',
                 clearTimeout: 'readonly',
+                URLSearchParams: 'readonly',
+                localStorage: 'readonly',
+                getComputedStyle: 'readonly',
+                URL: 'readonly',
+                Blob: 'readonly',
             },
         },
         plugins: {

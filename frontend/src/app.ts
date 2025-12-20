@@ -35,7 +35,7 @@ export class VisualAutoViewApp extends LitElement {
           this.isDarkMode = true;
         }
       }
-    } catch (e) {
+    } catch {
       // Cross-origin restriction, fallback to other methods
     }
 

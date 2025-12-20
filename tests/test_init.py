@@ -57,7 +57,7 @@ class TestAsyncSetup:
         assert result is True
         assert DOMAIN in mock_hass.data
         mock_api.setup_api.assert_called_once_with(mock_hass)
-        assert "Setting up Visual AutoView integration" in caplog.text
+        assert "Visual AutoView integration is being loaded" in caplog.text
 
     @pytest.mark.asyncio
     async def test_async_setup_api_failure(self, mock_hass, mock_config, caplog):
@@ -66,7 +66,7 @@ class TestAsyncSetup:
         with caplog.at_level(logging.WARNING):
             result = await async_setup(mock_hass, mock_config)
         assert result is True
-        assert "Failed to setup Visual AutoView API" in caplog.text
+        assert "FAILED to setup API endpoints" in caplog.text
 
 
 class TestAsyncSetupEntry:
