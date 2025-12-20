@@ -680,7 +680,9 @@ class CreateThemeEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body or "name" not in body:
-                return self.error_response("Missing field: name", HTTPStatus.BAD_REQUEST)
+                return self.error_response(
+                    "Missing field: name", HTTPStatus.BAD_REQUEST
+                )
 
             result = {
                 "id": "theme_new",
@@ -874,7 +876,8 @@ class CompareAutomationsEndpoint(RestApiEndpoint):
                 or "automation_id_2" not in body
             ):
                 return self.error_response(
-                    "Missing fields: automation_id_1, automation_id_2", HTTPStatus.BAD_REQUEST
+                    "Missing fields: automation_id_1, automation_id_2",
+                    HTTPStatus.BAD_REQUEST,
                 )
 
             result = {

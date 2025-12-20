@@ -180,7 +180,9 @@ class AutomationGraphParser:
             list[str]: List of trigger node IDs
         """
         # Accept both "trigger" and "triggers" field names
-        triggers = automation_config.get("triggers") or automation_config.get("trigger", [])
+        triggers = automation_config.get("triggers") or automation_config.get(
+            "trigger", []
+        )
         if not isinstance(triggers, list):
             triggers = [triggers]
 
@@ -217,7 +219,9 @@ class AutomationGraphParser:
             list[str]: List of condition node IDs
         """
         # Accept both "condition" and "conditions" field names
-        conditions = automation_config.get("conditions") or automation_config.get("condition", [])
+        conditions = automation_config.get("conditions") or automation_config.get(
+            "condition", []
+        )
         if not isinstance(conditions, list):
             if conditions:
                 conditions = [conditions]
@@ -256,7 +260,9 @@ class AutomationGraphParser:
             list[str]: List of action node IDs
         """
         # Accept both "action" and "actions" field names
-        actions = automation_config.get("actions") or automation_config.get("action", [])
+        actions = automation_config.get("actions") or automation_config.get(
+            "action", []
+        )
         if not isinstance(actions, list):
             actions = [actions] if actions else []
 
@@ -269,7 +275,11 @@ class AutomationGraphParser:
         return action_ids
 
     def _process_action_recursive(
-        self, action: dict[str, Any], index: int, graph: AutomationGraph, parent_id: str | None = None
+        self,
+        action: dict[str, Any],
+        index: int,
+        graph: AutomationGraph,
+        parent_id: str | None = None,
     ) -> list[str]:
         """Process an action recursively, handling nested structures.
 
@@ -306,7 +316,7 @@ class AutomationGraphParser:
                 # Create a branch node
                 branch_id = self._generate_node_id("action")
                 branch_label = f"Branch {choice_idx + 1}"
-                
+
                 # Check if there are conditions for this choice
                 if "conditions" in choice or "condition" in choice:
                     conditions = choice.get("conditions") or choice.get("condition", [])
@@ -324,7 +334,13 @@ class AutomationGraphParser:
                     color=COLORS[COMP_TYPE_CONDITION],
                 )
                 graph.nodes.append(branch_node)
-                graph.edges.append(AutomationEdge(from_node=choose_id, to_node=branch_id, label=f"option {choice_idx + 1}"))
+                graph.edges.append(
+                    AutomationEdge(
+                        from_node=choose_id,
+                        to_node=branch_id,
+                        label=f"option {choice_idx + 1}",
+                    )
+                )
 
                 # Process sequence of actions in this branch
                 sequence = choice.get("sequence", [])
@@ -333,13 +349,21 @@ class AutomationGraphParser:
 
                 prev_id = branch_id
                 for seq_idx, seq_action in enumerate(sequence):
-                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=branch_id)
+                    seq_ids = self._process_action_recursive(
+                        seq_action, seq_idx, graph, parent_id=branch_id
+                    )
                     if seq_ids:
                         # Connect first action in sequence to branch
-                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        graph.edges.append(
+                            AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                        )
                         # Connect actions in sequence
                         for i in range(len(seq_ids) - 1):
-                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=seq_ids[i], to_node=seq_ids[i + 1]
+                                )
+                            )
                         prev_id = seq_ids[-1]
 
             # Handle default branch
@@ -353,7 +377,11 @@ class AutomationGraphParser:
                     color=COLORS[COMP_TYPE_CONDITION],
                 )
                 graph.nodes.append(default_node)
-                graph.edges.append(AutomationEdge(from_node=choose_id, to_node=default_id, label="else"))
+                graph.edges.append(
+                    AutomationEdge(
+                        from_node=choose_id, to_node=default_id, label="else"
+                    )
+                )
 
                 # Process default sequence
                 default_sequence = action.get("default", [])
@@ -362,23 +390,31 @@ class AutomationGraphParser:
 
                 prev_id = default_id
                 for seq_idx, seq_action in enumerate(default_sequence):
-                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=default_id)
+                    seq_ids = self._process_action_recursive(
+                        seq_action, seq_idx, graph, parent_id=default_id
+                    )
                     if seq_ids:
-                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        graph.edges.append(
+                            AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                        )
                         for i in range(len(seq_ids) - 1):
-                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=seq_ids[i], to_node=seq_ids[i + 1]
+                                )
+                            )
                         prev_id = seq_ids[-1]
 
         # Handle if-then structure
         elif "if" in action:
             if_id = self._generate_node_id("action")
-            
+
             # Get condition summary
             conditions = action.get("if", [])
             if not isinstance(conditions, list):
                 conditions = [conditions] if conditions else []
             cond_summary = self._summarize_conditions(conditions)
-            
+
             node = AutomationNode(
                 id=if_id,
                 label=f"If: {cond_summary}",
@@ -397,14 +433,26 @@ class AutomationGraphParser:
 
                 prev_id = if_id
                 for seq_idx, seq_action in enumerate(then_sequence):
-                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=if_id)
+                    seq_ids = self._process_action_recursive(
+                        seq_action, seq_idx, graph, parent_id=if_id
+                    )
                     if seq_ids:
                         if prev_id == if_id:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="then"))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=prev_id, to_node=seq_ids[0], label="then"
+                                )
+                            )
                         else:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                            graph.edges.append(
+                                AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                            )
                         for i in range(len(seq_ids) - 1):
-                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=seq_ids[i], to_node=seq_ids[i + 1]
+                                )
+                            )
                         prev_id = seq_ids[-1]
 
             # Process else branch
@@ -415,14 +463,26 @@ class AutomationGraphParser:
 
                 prev_id = if_id
                 for seq_idx, seq_action in enumerate(else_sequence):
-                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=if_id)
+                    seq_ids = self._process_action_recursive(
+                        seq_action, seq_idx, graph, parent_id=if_id
+                    )
                     if seq_ids:
                         if prev_id == if_id:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="else"))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=prev_id, to_node=seq_ids[0], label="else"
+                                )
+                            )
                         else:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                            graph.edges.append(
+                                AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                            )
                         for i in range(len(seq_ids) - 1):
-                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=seq_ids[i], to_node=seq_ids[i + 1]
+                                )
+                            )
                         prev_id = seq_ids[-1]
 
         # Handle parallel actions
@@ -449,21 +509,35 @@ class AutomationGraphParser:
 
                 prev_id = parallel_id
                 for seq_idx, seq_action in enumerate(sequence):
-                    seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=parallel_id)
+                    seq_ids = self._process_action_recursive(
+                        seq_action, seq_idx, graph, parent_id=parallel_id
+                    )
                     if seq_ids:
                         if prev_id == parallel_id:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label=f"thread {par_idx + 1}"))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=prev_id,
+                                    to_node=seq_ids[0],
+                                    label=f"thread {par_idx + 1}",
+                                )
+                            )
                         else:
-                            graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                            graph.edges.append(
+                                AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                            )
                         for i in range(len(seq_ids) - 1):
-                            graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                            graph.edges.append(
+                                AutomationEdge(
+                                    from_node=seq_ids[i], to_node=seq_ids[i + 1]
+                                )
+                            )
                         prev_id = seq_ids[-1]
 
         # Handle repeat loops
         elif "repeat" in action:
             repeat_id = self._generate_node_id("action")
             repeat_config = action.get("repeat", {})
-            
+
             # Determine repeat type
             repeat_label = "Repeat"
             if "count" in repeat_config:
@@ -472,7 +546,7 @@ class AutomationGraphParser:
                 repeat_label = "Repeat while..."
             elif "until" in repeat_config:
                 repeat_label = "Repeat until..."
-            
+
             node = AutomationNode(
                 id=repeat_id,
                 label=repeat_label,
@@ -490,14 +564,24 @@ class AutomationGraphParser:
 
             prev_id = repeat_id
             for seq_idx, seq_action in enumerate(sequence):
-                seq_ids = self._process_action_recursive(seq_action, seq_idx, graph, parent_id=repeat_id)
+                seq_ids = self._process_action_recursive(
+                    seq_action, seq_idx, graph, parent_id=repeat_id
+                )
                 if seq_ids:
                     if prev_id == repeat_id:
-                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0], label="loop"))
+                        graph.edges.append(
+                            AutomationEdge(
+                                from_node=prev_id, to_node=seq_ids[0], label="loop"
+                            )
+                        )
                     else:
-                        graph.edges.append(AutomationEdge(from_node=prev_id, to_node=seq_ids[0]))
+                        graph.edges.append(
+                            AutomationEdge(from_node=prev_id, to_node=seq_ids[0])
+                        )
                     for i in range(len(seq_ids) - 1):
-                        graph.edges.append(AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1]))
+                        graph.edges.append(
+                            AutomationEdge(from_node=seq_ids[i], to_node=seq_ids[i + 1])
+                        )
                     prev_id = seq_ids[-1]
 
         # Handle regular actions
@@ -529,18 +613,18 @@ class AutomationGraphParser:
         """
         if not conditions:
             return "condition"
-        
+
         if len(conditions) == 1:
             cond = conditions[0]
             cond_type = cond.get("condition", "unknown")
-            
+
             if cond_type == "state":
                 entity = cond.get("entity_id", "entity")
                 state = cond.get("state", "")
                 if state:
                     return f"{entity} = {state}"
                 return entity
-            
+
             elif cond_type == "numeric_state":
                 entity = cond.get("entity_id", "entity")
                 above = cond.get("above", "")
@@ -552,13 +636,13 @@ class AutomationGraphParser:
                 elif below:
                     return f"{entity} < {below}"
                 return f"{entity} numeric"
-            
+
             elif cond_type == "template":
                 template = cond.get("value_template", "")
                 if template and len(template) < 40:
                     return f"template: {template}"
                 return "template"
-            
+
             elif cond_type == "time":
                 after = cond.get("after", "")
                 before = cond.get("before", "")
@@ -569,7 +653,7 @@ class AutomationGraphParser:
                 elif before:
                     return f"time before {before}"
                 return "time condition"
-            
+
             elif cond_type == "sun":
                 after = cond.get("after", "")
                 before = cond.get("before", "")
@@ -580,32 +664,32 @@ class AutomationGraphParser:
                 elif before:
                     return f"sun before {before}"
                 return "sun condition"
-            
+
             elif cond_type == "zone":
                 entity = cond.get("entity_id", "entity")
                 zone = cond.get("zone", "zone")
                 return f"{entity} in {zone}"
-            
+
             elif cond_type == "device":
                 device_type = cond.get("type", "")
                 if device_type:
                     return f"device: {device_type}"
                 return "device condition"
-            
+
             elif cond_type == "or":
                 sub_conditions = cond.get("conditions", [])
                 return f"any of {len(sub_conditions)}"
-            
+
             elif cond_type == "and":
                 sub_conditions = cond.get("conditions", [])
                 return f"all of {len(sub_conditions)}"
-            
+
             elif cond_type == "not":
                 return "NOT condition"
-            
+
             else:
                 return cond_type
-        
+
         else:
             # Multiple conditions - show first one + count
             first_cond = conditions[0]
@@ -618,7 +702,7 @@ class AutomationGraphParser:
                 entity = first_cond.get("entity_id", "")
                 if entity:
                     return f"{entity}... +{len(conditions)-1} more"
-            
+
             return f"{len(conditions)} conditions"
 
     def _build_edges(
@@ -707,13 +791,17 @@ class AutomationGraphParser:
             entity_id = trigger.get("entity_id", [])
             # Handle multiple entities
             if isinstance(entity_id, list):
-                entity_str = ", ".join(entity_id) if len(entity_id) <= 2 else f"{entity_id[0]} +{len(entity_id)-1}"
+                entity_str = (
+                    ", ".join(entity_id)
+                    if len(entity_id) <= 2
+                    else f"{entity_id[0]} +{len(entity_id)-1}"
+                )
             else:
                 entity_str = str(entity_id)
-            
+
             to_state = trigger.get("to", "")
             from_state = trigger.get("from", "")
-            
+
             if to_state and from_state:
                 return f"State: {entity_str}\n{from_state} → {to_state}"
             elif to_state:
@@ -722,7 +810,7 @@ class AutomationGraphParser:
                 return f"State: {entity_str}\nfrom {from_state}"
             else:
                 return f"State: {entity_str}"
-        
+
         # Handle time triggers
         elif platform == "time":
             at_time = trigger.get("at", "")
@@ -731,7 +819,7 @@ class AutomationGraphParser:
                     at_time = ", ".join(str(t) for t in at_time)
                 return f"Time: {at_time}"
             return "Time trigger"
-        
+
         # Handle sun triggers
         elif platform == "sun":
             event = trigger.get("event", "rise")
@@ -739,18 +827,22 @@ class AutomationGraphParser:
             if offset:
                 return f"Sun: {event} {offset}"
             return f"Sun: {event}"
-        
+
         # Handle numeric state triggers
         elif platform == "numeric_state":
             entity_id = trigger.get("entity_id", [])
             if isinstance(entity_id, list):
-                entity_str = ", ".join(entity_id) if len(entity_id) <= 2 else f"{entity_id[0]} +{len(entity_id)-1}"
+                entity_str = (
+                    ", ".join(entity_id)
+                    if len(entity_id) <= 2
+                    else f"{entity_id[0]} +{len(entity_id)-1}"
+                )
             else:
                 entity_str = str(entity_id)
-            
+
             above = trigger.get("above", "")
             below = trigger.get("below", "")
-            
+
             if above and below:
                 return f"Numeric: {entity_str}\n{below} < value < {above}"
             elif above:
@@ -759,36 +851,36 @@ class AutomationGraphParser:
                 return f"Numeric: {entity_str} < {below}"
             else:
                 return f"Numeric: {entity_str}"
-        
+
         # Handle template triggers
         elif platform == "template":
             value_template = trigger.get("value_template", "")
             if value_template and len(value_template) < 30:
                 return f"Template:\n{value_template}"
             return "Template trigger"
-        
+
         # Handle time pattern triggers
         elif platform == "time_pattern":
             hours = trigger.get("hours", "*")
             minutes = trigger.get("minutes", "*")
             seconds = trigger.get("seconds", "*")
             return f"Time pattern:\n{hours}:{minutes}:{seconds}"
-        
+
         # Handle webhook triggers
         elif platform == "webhook":
             webhook_id = trigger.get("webhook_id", "")
             return f"Webhook: {webhook_id}" if webhook_id else "Webhook trigger"
-        
+
         # Handle event triggers
         elif platform == "event":
             event_type = trigger.get("event_type", "")
             return f"Event: {event_type}" if event_type else "Event trigger"
-        
+
         # Handle MQTT triggers
         elif platform == "mqtt":
             topic = trigger.get("topic", "")
             return f"MQTT: {topic}" if topic else "MQTT trigger"
-        
+
         # Handle zone triggers
         elif platform == "zone":
             entity_id = trigger.get("entity_id", "")
@@ -797,17 +889,17 @@ class AutomationGraphParser:
             if entity_id and zone:
                 return f"Zone: {entity_id}\n{event} {zone}"
             return "Zone trigger"
-        
+
         # Handle geo_location triggers
         elif platform == "geo_location":
             source = trigger.get("source", "")
             return f"Geo: {source}" if source else "Geo location trigger"
-        
+
         # Handle homeassistant triggers
         elif platform == "homeassistant":
             event = trigger.get("event", "start")
             return f"Home Assistant: {event}"
-        
+
         # Handle device triggers
         elif platform == "device":
             device_id = trigger.get("device_id", "")
@@ -818,34 +910,34 @@ class AutomationGraphParser:
             elif domain:
                 return f"Device: {domain}"
             return "Device trigger"
-        
+
         # Handle tag triggers
         elif platform == "tag":
             tag_id = trigger.get("tag_id", "")
             return f"Tag: {tag_id}" if tag_id else "Tag scanned"
-        
+
         # Handle calendar triggers
         elif platform == "calendar":
             entity_id = trigger.get("entity_id", "")
             event = trigger.get("event", "start")
             return f"Calendar: {entity_id}\n{event}"
-        
+
         # Fallback for unknown or unhandled platforms
         elif platform:
             return f"Trigger: {platform}"
-        
+
         # Last resort - check for 'id' or other identifying fields
         trigger_id = trigger.get("id", "")
         if trigger_id:
             return f"Trigger: {trigger_id}"
-        
+
         # If we still don't have anything meaningful, check if there's any data
         if trigger:
             # Try to get the first non-platform key as a hint
             keys = [k for k in trigger.keys() if k not in ["platform", "id"]]
             if keys:
                 return f"Trigger: {keys[0]}"
-        
+
         return f"Trigger #{index + 1}"
 
     @staticmethod
@@ -913,13 +1005,13 @@ class AutomationGraphParser:
         # Service calls
         if "service" in action:
             service = action.get("service", "unknown")
-            
+
             # Extract target and data information
             target_info = ""
             data_info = ""
             target = action.get("target", {})
             data = action.get("data", {})
-            
+
             # Try to get entity_id from various places
             entity_id = None
             if isinstance(target, dict):
@@ -928,7 +1020,7 @@ class AutomationGraphParser:
                 entity_id = action.get("entity_id")
             elif isinstance(data, dict) and "entity_id" in data:
                 entity_id = data.get("entity_id")
-            
+
             # Format entity_id for display
             if entity_id:
                 if isinstance(entity_id, list):
@@ -940,7 +1032,7 @@ class AutomationGraphParser:
                         target_info = f"{entity_id[0]} +{len(entity_id)-1} more"
                 else:
                     target_info = f"{entity_id}"
-            
+
             # Check for area or device targets
             elif isinstance(target, dict):
                 if "area_id" in target:
@@ -955,7 +1047,7 @@ class AutomationGraphParser:
                         target_info = f"{len(device)} devices"
                     else:
                         target_info = f"Device: {device}"
-            
+
             # Extract and format data parameters
             data_parts = []
             if isinstance(data, dict):
@@ -967,89 +1059,91 @@ class AutomationGraphParser:
                         data_parts.append(f"Brightness: {pct}%")
                     else:
                         data_parts.append(f"Brightness: {brightness}")
-                
+
                 if "brightness_pct" in data:
                     data_parts.append(f"Brightness: {data['brightness_pct']}%")
-                
+
                 if "rgb_color" in data:
                     rgb = data["rgb_color"]
                     if isinstance(rgb, list) and len(rgb) == 3:
                         data_parts.append(f"RGB: ({rgb[0]},{rgb[1]},{rgb[2]})")
                     else:
                         data_parts.append(f"RGB: {rgb}")
-                
+
                 if "kelvin" in data:
                     data_parts.append(f"Color temp: {data['kelvin']}K")
-                
+
                 if "color_temp" in data:
                     data_parts.append(f"Color temp: {data['color_temp']}")
-                
+
                 if "color_name" in data:
                     data_parts.append(f"Color: {data['color_name']}")
-                
+
                 # Climate parameters
                 if "temperature" in data:
                     data_parts.append(f"Temp: {data['temperature']}°")
-                
+
                 if "target_temp_high" in data and "target_temp_low" in data:
-                    data_parts.append(f"Range: {data['target_temp_low']}-{data['target_temp_high']}°")
+                    data_parts.append(
+                        f"Range: {data['target_temp_low']}-{data['target_temp_high']}°"
+                    )
                 elif "target_temp_high" in data:
                     data_parts.append(f"Max: {data['target_temp_high']}°")
                 elif "target_temp_low" in data:
                     data_parts.append(f"Min: {data['target_temp_low']}°")
-                
+
                 if "hvac_mode" in data:
                     data_parts.append(f"Mode: {data['hvac_mode']}")
-                
+
                 if "fan_mode" in data:
                     data_parts.append(f"Fan: {data['fan_mode']}")
-                
+
                 # Cover parameters
                 if "position" in data:
                     data_parts.append(f"Position: {data['position']}%")
-                
+
                 if "tilt_position" in data:
                     data_parts.append(f"Tilt: {data['tilt_position']}%")
-                
+
                 # Media player parameters
                 if "media_content_id" in data:
                     content = str(data["media_content_id"])
                     if len(content) > 30:
                         content = content[:30] + "..."
                     data_parts.append(f"Media: {content}")
-                
+
                 if "volume_level" in data:
                     vol = int(float(data["volume_level"]) * 100)
                     data_parts.append(f"Volume: {vol}%")
-                
+
                 # Notification parameters
                 if "message" in data:
                     msg = str(data["message"])
                     if len(msg) > 40:
                         msg = msg[:40] + "..."
-                    data_parts.append(f"Message: \"{msg}\"")
-                
+                    data_parts.append(f'Message: "{msg}"')
+
                 if "title" in data:
                     title = str(data["title"])
                     if len(title) > 30:
                         title = title[:30] + "..."
-                    data_parts.append(f"Title: \"{title}\"")
-                
+                    data_parts.append(f'Title: "{title}"')
+
                 # Input parameters
                 if "value" in data and "message" not in data:
                     data_parts.append(f"Value: {data['value']}")
-                
+
                 if "option" in data:
                     data_parts.append(f"Option: {data['option']}")
-                
+
                 # Timer/duration parameters
                 if "duration" in data and "delay" not in action:
                     data_parts.append(f"Duration: {data['duration']}")
-                
+
                 # Generic state
                 if "state" in data:
                     data_parts.append(f"State: {data['state']}")
-            
+
             # Build the full label
             label_parts = [service]
             if target_info:
@@ -1059,14 +1153,14 @@ class AutomationGraphParser:
                 data_info = "\n".join(data_parts[:3])
                 if len(data_parts) > 3:
                     data_info += f"\n+{len(data_parts)-3} more params"
-            
+
             if data_info:
                 return f"{label_parts[0]}\n{label_parts[1] if len(label_parts) > 1 else ''}\n{data_info}".strip()
             elif len(label_parts) > 1:
                 return f"{label_parts[0]}\n{label_parts[1]}"
             else:
                 return label_parts[0]
-        
+
         # Delay
         elif "delay" in action:
             delay_str = action.get("delay", "unknown")
@@ -1084,7 +1178,7 @@ class AutomationGraphParser:
                     parts.append(f"{seconds}s")
                 delay_str = " ".join(parts) if parts else "0s"
             return f"Delay: {delay_str}"
-        
+
         # Wait for template
         elif "wait_template" in action:
             template = action.get("wait_template", "")
@@ -1092,24 +1186,24 @@ class AutomationGraphParser:
             if timeout:
                 return f"Wait (timeout: {timeout})"
             return "Wait for template"
-        
+
         # Wait for trigger
         elif "wait_for_trigger" in action:
             timeout = action.get("timeout", "")
             if timeout:
                 return f"Wait for trigger\n(timeout: {timeout})"
             return "Wait for trigger"
-        
+
         # Event
         elif "event" in action:
             event_name = action.get("event", "unknown")
             return f"Fire event: {event_name}"
-        
+
         # Scene
         elif "scene" in action:
             scene = action.get("scene", "unknown")
             return f"Scene: {scene}"
-        
+
         # Device action
         elif "device_id" in action:
             device_type = action.get("type", "")
@@ -1119,14 +1213,14 @@ class AutomationGraphParser:
             elif domain:
                 return f"Device: {domain}"
             return "Device action"
-        
+
         # Stop action
         elif "stop" in action:
             stop_msg = action.get("stop", "")
             if stop_msg:
                 return f"Stop: {stop_msg}"
             return "Stop"
-        
+
         # Variables
         elif "variables" in action:
             var_dict = action.get("variables", {})
@@ -1139,7 +1233,7 @@ class AutomationGraphParser:
                 else:
                     return f"Set {len(var_names)} variables"
             return "Set variables"
-        
+
         # These shouldn't appear here as they're handled in _process_action_recursive
         # but keep them as fallback
         elif "choose" in action:
@@ -1150,11 +1244,15 @@ class AutomationGraphParser:
             return "Repeat loop"
         elif "if" in action:
             return "If condition"
-        
+
         # Unknown action - try to find any identifying info
         else:
             # Check for any keys that might give us a hint
-            action_keys = [k for k in action.keys() if k not in ["alias", "enabled", "continue_on_error"]]
+            action_keys = [
+                k
+                for k in action.keys()
+                if k not in ["alias", "enabled", "continue_on_error"]
+            ]
             if action_keys:
                 return f"Action: {action_keys[0]}"
             return f"Action #{index + 1}"

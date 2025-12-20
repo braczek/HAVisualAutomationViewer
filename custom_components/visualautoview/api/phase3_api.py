@@ -675,7 +675,9 @@ class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
             body = self.parse_json_body(request)
 
             if not body or "template" not in body:
-                return self.error_response("Missing field: template", HTTPStatus.BAD_REQUEST)
+                return self.error_response(
+                    "Missing field: template", HTTPStatus.BAD_REQUEST
+                )
 
             result = {
                 "template": body["template"],

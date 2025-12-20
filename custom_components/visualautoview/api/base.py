@@ -4,9 +4,8 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
-
 from http import HTTPStatus
+from typing import Any, Callable, Dict, Optional
 
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant
@@ -106,7 +105,9 @@ class RestApiEndpoint(BaseApiView):
 
     async def delete(self, request) -> tuple:
         """Handle DELETE request."""
-        return self.error_response("DELETE not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        return self.error_response(
+            "DELETE not supported", HTTPStatus.METHOD_NOT_ALLOWED
+        )
 
 
 class WebSocketHandler(ABC):

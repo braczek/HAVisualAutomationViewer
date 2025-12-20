@@ -24,26 +24,34 @@ async def setup_api(hass: HomeAssistant) -> bool:
         # Register Phase 1 endpoints
         _LOGGER.info("Visual AutoView API: Creating Phase 1 endpoints")
         phase1_endpoints = Phase1Endpoints.create_endpoints(hass)
-        _LOGGER.info(f"Visual AutoView API: Created {len(phase1_endpoints)} Phase 1 endpoints")
+        _LOGGER.info(
+            f"Visual AutoView API: Created {len(phase1_endpoints)} Phase 1 endpoints"
+        )
         for endpoint in phase1_endpoints:
             registry.register(endpoint)
 
         # Register Phase 2 endpoints
         _LOGGER.info("Visual AutoView API: Creating Phase 2 endpoints")
         phase2_endpoints = Phase2Endpoints.create_endpoints(hass)
-        _LOGGER.info(f"Visual AutoView API: Created {len(phase2_endpoints)} Phase 2 endpoints")
+        _LOGGER.info(
+            f"Visual AutoView API: Created {len(phase2_endpoints)} Phase 2 endpoints"
+        )
         for endpoint in phase2_endpoints:
             registry.register(endpoint)
 
         # Register Phase 3 endpoints
         _LOGGER.info("Visual AutoView API: Creating Phase 3 endpoints")
         phase3_endpoints = Phase3Endpoints.create_endpoints(hass)
-        _LOGGER.info(f"Visual AutoView API: Created {len(phase3_endpoints)} Phase 3 endpoints")
+        _LOGGER.info(
+            f"Visual AutoView API: Created {len(phase3_endpoints)} Phase 3 endpoints"
+        )
         for endpoint in phase3_endpoints:
             registry.register(endpoint)
 
         # Register all endpoints with Home Assistant HTTP
-        _LOGGER.warning("Visual AutoView API: Registering endpoints with Home Assistant HTTP...")
+        _LOGGER.warning(
+            "Visual AutoView API: Registering endpoints with Home Assistant HTTP..."
+        )
         await registry.register_with_http()
 
         # Store registry in hass.data
@@ -55,7 +63,7 @@ async def setup_api(hass: HomeAssistant) -> bool:
         _LOGGER.warning(
             f"========== Visual AutoView API: Successfully registered {endpoint_count} endpoints =========="
         )
-        
+
         # Log all registered URLs
         for url in registry.get_endpoints().keys():
             _LOGGER.warning(f"  ✓ Registered: {url}")

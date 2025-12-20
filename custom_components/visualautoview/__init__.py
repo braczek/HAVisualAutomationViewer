@@ -4,12 +4,12 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.components import frontend
 
 from .api import setup_api
 from .const import DOMAIN

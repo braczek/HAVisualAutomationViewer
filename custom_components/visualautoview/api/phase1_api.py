@@ -119,7 +119,9 @@ class ParseGraphEndpoint(RestApiEndpoint):
             }
 
             self.log_response(HTTPStatus.OK, "Graph parsed successfully")
-            return self.json_response(result, HTTPStatus.OK, "Graph parsed successfully")
+            return self.json_response(
+                result, HTTPStatus.OK, "Graph parsed successfully"
+            )
 
         except Exception as e:
             return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -166,7 +168,7 @@ class GetAutomationGraphEndpoint(RestApiEndpoint):
             # Get automation_id from either parameter or match_info
             if not automation_id:
                 automation_id = request.match_info.get("automation_id")
-            
+
             if not automation_id:
                 return self.error_response(
                     "Missing automation_id in path", HTTPStatus.BAD_REQUEST
@@ -175,7 +177,7 @@ class GetAutomationGraphEndpoint(RestApiEndpoint):
             # Get automation from Home Assistant
             automations = self.hass.states.async_entity_ids("automation")
             _LOGGER.info(f"Looking for automation: automation.{automation_id}")
-            
+
             if (
                 f"automation.{automation_id}" not in automations
                 and automation_id not in automations
@@ -196,35 +198,49 @@ class GetAutomationGraphEndpoint(RestApiEndpoint):
 
             # Try to get automation configuration from automations component
             automation_data = None
-            
+
             # Method 1: Get from automation entity's raw_config
             try:
                 automation_component = self.hass.data.get("automation")
                 if automation_component:
-                    entity_id = f"automation.{automation_id}" if not automation_id.startswith("automation.") else automation_id
-                    
+                    entity_id = (
+                        f"automation.{automation_id}"
+                        if not automation_id.startswith("automation.")
+                        else automation_id
+                    )
+
                     # Get entity from component
-                    if hasattr(automation_component, 'get_entity'):
+                    if hasattr(automation_component, "get_entity"):
                         entity = automation_component.get_entity(entity_id)
-                        if entity and hasattr(entity, 'raw_config'):
+                        if entity and hasattr(entity, "raw_config"):
                             automation_data = entity.raw_config
-                            _LOGGER.info(f"Got automation config from raw_config: {automation_data}")
-                    
+                            _LOGGER.info(
+                                f"Got automation config from raw_config: {automation_data}"
+                            )
+
             except Exception as e:
-                _LOGGER.error(f"Error accessing automation component: {e}", exc_info=True)
-            
+                _LOGGER.error(
+                    f"Error accessing automation component: {e}", exc_info=True
+                )
+
             # Method 2: Fallback to empty data
             if not automation_data:
                 _LOGGER.warning("Could not find automation config, using empty data")
                 automation_data = {
-                    "alias": automation_state.attributes.get("friendly_name", automation_id),
+                    "alias": automation_state.attributes.get(
+                        "friendly_name", automation_id
+                    ),
                     "triggers": [],
                     "conditions": [],
                     "actions": [],
                 }
-            
-            _LOGGER.info(f"Final automation data keys: {automation_data.keys() if automation_data else 'None'}")
-            _LOGGER.info(f"Triggers count: {len(automation_data.get('triggers', automation_data.get('trigger', [])))}, Conditions count: {len(automation_data.get('conditions', automation_data.get('condition', [])))}, Actions count: {len(automation_data.get('actions', automation_data.get('action', [])))}")
+
+            _LOGGER.info(
+                f"Final automation data keys: {automation_data.keys() if automation_data else 'None'}"
+            )
+            _LOGGER.info(
+                f"Triggers count: {len(automation_data.get('triggers', automation_data.get('trigger', [])))}, Conditions count: {len(automation_data.get('conditions', automation_data.get('condition', [])))}, Actions count: {len(automation_data.get('actions', automation_data.get('action', [])))}"
+            )
 
             # Parse the automation
             parser = AutomationGraphParser()
@@ -233,8 +249,8 @@ class GetAutomationGraphEndpoint(RestApiEndpoint):
             except Exception as parse_error:
                 _LOGGER.error(f"Error parsing automation: {parse_error}", exc_info=True)
                 return self.error_response(
-                    f"Failed to parse automation: {str(parse_error)}", 
-                    HTTPStatus.INTERNAL_SERVER_ERROR
+                    f"Failed to parse automation: {str(parse_error)}",
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
                 )
 
             result = {
@@ -266,12 +282,13 @@ class GetAutomationGraphEndpoint(RestApiEndpoint):
         try:
             # Access the automation storage/config
             from homeassistant.components.automation import automations_with_entity_id
+
             configs = []
-            
+
             # Try to get from hass.data
             if "automation" in self.hass.data:
                 return self.hass.data["automation"].get("configs", [])
-            
+
             return configs
         except Exception as e:
             _LOGGER.warning(f"Could not access automation configs: {e}")
@@ -343,17 +360,17 @@ class ListAutomationsEndpoint(RestApiEndpoint):
                 # Try to get actual automation config
                 node_count = 0
                 edge_count = 0
-                
+
                 try:
                     # Get the automation configuration from the component
                     automation_config = await self._get_automation_config(automation_id)
-                    
+
                     if automation_config:
                         # Parse automation to get actual node/edge counts
                         graph = parser.parse_automation(automation_config)
                         node_count = len(graph.nodes)
                         edge_count = len(graph.edges)
-                    
+
                 except Exception as e:
                     _LOGGER.debug(f"Could not parse automation {automation_id}: {e}")
                     # Keep default 0 values
@@ -386,25 +403,29 @@ class ListAutomationsEndpoint(RestApiEndpoint):
                 "total_pages": total_pages,
             }
 
-            self.log_response(HTTPStatus.OK, f"Listed {len(paged_automations)} automations")
+            self.log_response(
+                HTTPStatus.OK, f"Listed {len(paged_automations)} automations"
+            )
             return self.json_response(result, HTTPStatus.OK)
 
         except Exception as e:
             return ApiErrorHandler.handle_error(e, HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    async def _get_automation_config(self, automation_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_automation_config(
+        self, automation_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Get automation configuration from Home Assistant.
-        
+
         Args:
             automation_id: The automation entity ID (e.g., 'automation.my_automation')
-            
+
         Returns:
             Automation configuration dictionary or None if not found
         """
         try:
             # Clean automation_id
             clean_id = automation_id.replace("automation.", "")
-            
+
             # Try to get automation config from automation component
             automation_component = self.hass.data.get("automation")
             if automation_component:
@@ -416,29 +437,35 @@ class ListAutomationsEndpoint(RestApiEndpoint):
                             "id": clean_id,
                             "alias": entity.name or clean_id,
                         }
-                        
+
                         # Extract triggers
                         if hasattr(entity, "_trigger_config"):
                             config["trigger"] = entity._trigger_config
                         elif hasattr(entity, "trigger"):
                             config["trigger"] = entity.trigger
-                        
+
                         # Extract conditions
                         if hasattr(entity, "_cond_config"):
                             config["condition"] = entity._cond_config
-                        
+
                         # Extract actions
                         if hasattr(entity, "_action_config"):
                             config["action"] = entity._action_config
-                        elif hasattr(entity, "action_script") and hasattr(entity.action_script, "sequence"):
+                        elif hasattr(entity, "action_script") and hasattr(
+                            entity.action_script, "sequence"
+                        ):
                             config["action"] = entity.action_script.sequence
-                        
+
                         # Description
                         if hasattr(entity, "description"):
                             config["description"] = entity.description
-                        
-                        return config if (config.get("trigger") or config.get("action")) else None
-            
+
+                        return (
+                            config
+                            if (config.get("trigger") or config.get("action"))
+                            else None
+                        )
+
             # Fallback: try to read from attributes
             state = self.hass.states.get(automation_id)
             if state and state.attributes:
@@ -448,9 +475,9 @@ class ListAutomationsEndpoint(RestApiEndpoint):
                     "trigger": [],  # Minimal config
                     "action": [],
                 }
-            
+
             return None
-            
+
         except Exception as e:
             _LOGGER.debug(f"Error getting automation config for {automation_id}: {e}")
             return None

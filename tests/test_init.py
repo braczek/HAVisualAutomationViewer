@@ -8,22 +8,28 @@ import pytest
 
 # Mock homeassistant and its submodules
 mock_ha = MagicMock()
-sys.modules['homeassistant'] = mock_ha
-sys.modules['homeassistant.config_entries'] = mock_ha.config_entries = MagicMock()
-sys.modules['homeassistant.const'] = mock_ha.const = MagicMock()
-sys.modules['homeassistant.core'] = mock_ha.core = MagicMock()
-sys.modules['homeassistant.helpers'] = mock_ha.helpers = MagicMock()
-sys.modules['homeassistant.helpers.config_validation'] = mock_ha.helpers.config_validation = MagicMock()
-sys.modules['homeassistant.helpers.typing'] = mock_ha.helpers.typing = MagicMock()
-sys.modules['homeassistant.components'] = mock_ha.components = MagicMock()
-sys.modules['homeassistant.components.http'] = mock_ha.components.http = MagicMock()
+sys.modules["homeassistant"] = mock_ha
+sys.modules["homeassistant.config_entries"] = mock_ha.config_entries = MagicMock()
+sys.modules["homeassistant.const"] = mock_ha.const = MagicMock()
+sys.modules["homeassistant.core"] = mock_ha.core = MagicMock()
+sys.modules["homeassistant.helpers"] = mock_ha.helpers = MagicMock()
+sys.modules["homeassistant.helpers.config_validation"] = (
+    mock_ha.helpers.config_validation
+) = MagicMock()
+sys.modules["homeassistant.helpers.typing"] = mock_ha.helpers.typing = MagicMock()
+sys.modules["homeassistant.components"] = mock_ha.components = MagicMock()
+sys.modules["homeassistant.components.http"] = mock_ha.components.http = MagicMock()
 
 # Mock the api module
 mock_api = MagicMock()
 mock_api.setup_api = AsyncMock()
-sys.modules['custom_components.visualautoview.api'] = mock_api
+sys.modules["custom_components.visualautoview.api"] = mock_api
 
-from custom_components.visualautoview import async_setup, async_setup_entry, async_unload_entry
+from custom_components.visualautoview import (
+    async_setup,
+    async_setup_entry,
+    async_unload_entry,
+)
 from custom_components.visualautoview.const import DOMAIN
 
 
@@ -89,8 +95,13 @@ class TestAsyncSetupEntry:
         assert result is True
         assert mock_entry.entry_id in mock_hass.data[DOMAIN]
         assert mock_hass.data[DOMAIN][mock_entry.entry_id]["config_entry"] == mock_entry
-        mock_hass.config_entries.async_forward_entry_setups.assert_called_once_with(mock_entry, [])
-        assert f"Setting up Visual AutoView config entry: {mock_entry.entry_id}" in caplog.text
+        mock_hass.config_entries.async_forward_entry_setups.assert_called_once_with(
+            mock_entry, []
+        )
+        assert (
+            f"Setting up Visual AutoView config entry: {mock_entry.entry_id}"
+            in caplog.text
+        )
 
 
 class TestAsyncUnloadEntry:
@@ -117,9 +128,14 @@ class TestAsyncUnloadEntry:
         with caplog.at_level(logging.DEBUG):
             result = await async_unload_entry(mock_hass, mock_entry)
         assert result is True
-        mock_hass.config_entries.async_unload_platforms.assert_called_once_with(mock_entry, [])
+        mock_hass.config_entries.async_unload_platforms.assert_called_once_with(
+            mock_entry, []
+        )
         assert mock_entry.entry_id not in mock_hass.data[DOMAIN]
-        assert f"Unloading Visual AutoView config entry: {mock_entry.entry_id}" in caplog.text
+        assert (
+            f"Unloading Visual AutoView config entry: {mock_entry.entry_id}"
+            in caplog.text
+        )
 
     @pytest.mark.asyncio
     async def test_async_unload_entry_failure(self, mock_hass, mock_entry):
