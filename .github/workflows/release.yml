@@ -65,6 +65,12 @@ jobs:
         test -f install.ps1 && echo "install.ps1" >> release_files.txt || true
         test -f INSTALLATION.md && echo "INSTALLATION.md" >> release_files.txt || true
     
+    - name: Delete auto-created release
+      run: |
+        gh release delete v${{ steps.changelog.outputs.version }} --yes || true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
@@ -74,6 +80,5 @@ jobs:
         body_path: changelog.txt
         draft: false
         prerelease: false
-        fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
