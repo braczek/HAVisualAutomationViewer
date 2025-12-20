@@ -8,9 +8,6 @@
     ],
     "documentation": "https://github.com/braczek/HAVisualAutomationViewer",
     "domain": "visualautoview",
-    "homeassistant": {
-        "min_version": "2023.11.0"
-    },
     "iot_class": "calculated",
     "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
     "name": "Visual AutoView - Automation Graph Visualization",
