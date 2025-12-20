@@ -65,21 +65,16 @@ jobs:
         test -f install.ps1 && echo "install.ps1" >> release_files.txt || true
         test -f INSTALLATION.md && echo "INSTALLATION.md" >> release_files.txt || true
     
-    - name: Delete auto-created release if exists
-      continue-on-error: true
-      run: |
-        gh release delete ${{ github.ref_name }} --yes --repo ${{ github.repository }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: List created files
+      run: ls -lah *.zip
     
     - name: Create GitHub Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: |
-          visualautoview-${{ steps.changelog.outputs.version }}.zip
-          visualautoview.zip
+        artifacts: visualautoview-${{ steps.changelog.outputs.version }}.zip,visualautoview.zip
         bodyFile: changelog.txt
         draft: false
         prerelease: false
         tag: ${{ github.ref_name }}
-        makeLatest: true
+        allowUpdates: true
+        skipIfReleaseExists: false
