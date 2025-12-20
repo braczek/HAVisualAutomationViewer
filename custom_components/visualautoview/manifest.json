@@ -1,16 +1,19 @@
 {
-    "domain": "visualautoview",
-    "name": "Visual AutoView - Automation Graph Visualization",
     "codeowners": [
         "@braczek"
     ],
     "config_flow": false,
-    "documentation": "https://github.com/braczek/HAVisualAutomationViewer",
-    "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
-    "requirements": [],
-    "version": "1.0.1",
     "dependencies": [
         "http"
     ],
-    "iot_class": "calculated"
+    "documentation": "https://github.com/braczek/HAVisualAutomationViewer",
+    "domain": "visualautoview",
+    "homeassistant": {
+        "min_version": "2023.11.0"
+    },
+    "iot_class": "calculated",
+    "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
+    "name": "Visual AutoView - Automation Graph Visualization",
+    "requirements": [],
+    "version": "1.0.1"
 }
