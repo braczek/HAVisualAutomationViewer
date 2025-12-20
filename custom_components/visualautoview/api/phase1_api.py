@@ -39,7 +39,7 @@ class HealthCheckEndpoint(RestApiEndpoint):
         try:
             result = {
                 "status": "ok",
-                "version": "1.0.0",
+                "version": "1.0.1",
                 "integration": "visualautoview",
             }
             return self.json_response(result, HTTPStatus.OK)

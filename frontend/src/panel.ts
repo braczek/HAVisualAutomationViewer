@@ -127,9 +127,9 @@ export class VisualAutoViewPanel extends LitElement {
 
       .nav-button {
         padding: 8px 16px;
-        background: var(--primary-color, #03a9f4);
-        color: white;
-        border: none;
+        background: var(--card-background-color);
+        color: var(--primary-text-color);
+        border: 1px solid var(--divider-color);
         border-radius: 4px;
         cursor: pointer;
         font-size: 14px;
@@ -138,23 +138,27 @@ export class VisualAutoViewPanel extends LitElement {
       }
 
       .nav-button:hover {
-        filter: brightness(1.1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        background: var(--secondary-background-color);
+        border-color: var(--primary-color);
       }
 
       .nav-button.active {
-        background: var(--accent-color, #ff9800);
+        background: var(--primary-color);
+        color: var(--text-primary-color, white);
+        border-color: var(--primary-color);
       }
 
       .content {
         flex: 1;
-        overflow: auto;
-        padding: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       vav-dashboard,
       vav-analytics {
         display: block;
+        flex: 1;
         height: 100%;
       }
     `;
@@ -195,9 +199,6 @@ export class VisualAutoViewPanel extends LitElement {
     `;
   }
 }
-
-// Register the panel
-customElements.define('visualautoview-panel', VisualAutoViewPanel);
 
 // This is required for HA to load the panel
 declare global {

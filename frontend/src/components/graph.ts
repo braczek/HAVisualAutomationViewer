@@ -44,10 +44,10 @@ export class GraphVisualization extends LitElement {
     #graph-container {
       width: 100%;
       height: 600px;
-      border: 1px solid var(#e0e0e0);
+      border: 1px solid var(--divider-color);
       border-radius: 4px;
       overflow: hidden;
-      background: var(white);
+      background: var(--card-background-color);
     }
 
     .controls {
@@ -59,9 +59,9 @@ export class GraphVisualization extends LitElement {
 
     button {
       padding: 6px 12px;
-      border: 1px solid var(#2196F3);
-      background: var(white);
-      color: var(#2196F3);
+      border: 1px solid var(--primary-color);
+      background: var(--card-background-color);
+      color: var(--primary-color);
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
@@ -69,7 +69,7 @@ export class GraphVisualization extends LitElement {
     }
 
     button:hover {
-      background: var(#2196F3);
+      background: var(--primary-color);
       color: white;
     }
 
@@ -82,7 +82,7 @@ export class GraphVisualization extends LitElement {
       gap: 16px;
       margin-top: 12px;
       font-size: 12px;
-      color: var(#666);
+      color: var(--secondary-text-color);
     }
 
     .stat-item {
@@ -95,9 +95,9 @@ export class GraphVisualization extends LitElement {
       display: inline-block;
       padding: 2px 6px;
       border-radius: 3px;
-      background: var(#f5f5f5);
+      background: var(--secondary-background-color);
       font-weight: 500;
-      color: var(#000);
+      color: var(--primary-text-color);
     }
   `;
 
@@ -166,9 +166,9 @@ export class GraphVisualization extends LitElement {
 
       // Get colors from CSS variables
       const computedStyle = getComputedStyle(document.body);
-      const edgeColor = computedStyle.getPropertyValue('--ha-divider-color').trim() || '#999';
-      const highlightColor = computedStyle.getPropertyValue('--ha-primary-color').trim() || '#2196F3';
-      const textColor = computedStyle.getPropertyValue('--ha-primary-text-color').trim() || 'black';
+      const edgeColor = computedStyle.getPropertyValue('--divider-color').trim() || '#999';
+      const highlightColor = computedStyle.getPropertyValue('--primary-color').trim() || '#2196F3';
+      const textColor = computedStyle.getPropertyValue('--primary-text-color').trim() || '#212121';
 
       const options = {
         physics: {
@@ -253,10 +253,10 @@ export class GraphVisualization extends LitElement {
     // Get colors from CSS variables with fallbacks
     const computedStyle = getComputedStyle(document.body);
     const typeColors = {
-      trigger: computedStyle.getPropertyValue('--ha-success-color').trim() || '#4CAF50',
-      condition: computedStyle.getPropertyValue('--ha-info-color').trim() || 
-                 computedStyle.getPropertyValue('--ha-primary-color').trim() || '#2196F3',
-      action: computedStyle.getPropertyValue('--ha-accent-color').trim() || '#FF9800',
+      trigger: computedStyle.getPropertyValue('--success-color').trim() || '#4CAF50',
+      condition: computedStyle.getPropertyValue('--info-color').trim() || 
+                 computedStyle.getPropertyValue('--primary-color').trim() || '#2196F3',
+      action: computedStyle.getPropertyValue('--accent-color').trim() || '#FF9800',
     };
 
     const typeShapes = {

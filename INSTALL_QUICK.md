@@ -71,6 +71,16 @@ You can also download pre-packaged releases:
 3. Extract to `/config/custom_components/`
 4. Restart Home Assistant
 
+## Access the Panel
+
+After installation and restart:
+
+1. Open Home Assistant (`http://your-ha-ip:8123`)
+2. Look for **"AutoView"** in the sidebar
+3. Or navigate directly to: `http://your-ha-ip:8123/visualautoview`
+
+The integration runs as a native Home Assistant panel with full theme support.
+
 ## Need Help?
 
 See the [Installation Guide](INSTALLATION.md) for detailed instructions and troubleshooting.

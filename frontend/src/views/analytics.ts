@@ -45,9 +45,9 @@ export class AnalyticsPanel extends LitElement {
   static styles = css`
     :host {
       display: block;
-      background: var(white);
-      color: var(#000);
-      font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+      background: var(--primary-background-color);
+      color: var(--primary-text-color);
+      font-family: var(--paper-font-body1_-_font-family);
     }
 
     .container {
@@ -59,8 +59,8 @@ export class AnalyticsPanel extends LitElement {
     .tabs {
       display: flex;
       gap: 0;
-      border-bottom: 2px solid var(#e0e0e0);
-      background: var(#f5f5f5);
+      border-bottom: 2px solid var(--divider-color);
+      background: var(--card-background-color);
     }
 
     .tab-button {
@@ -70,7 +70,7 @@ export class AnalyticsPanel extends LitElement {
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
-      color: var(#666);
+      color: var(--secondary-text-color);
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
       position: relative;
@@ -78,12 +78,13 @@ export class AnalyticsPanel extends LitElement {
     }
 
     .tab-button:hover {
-      color: var(#000);
+      color: var(--primary-text-color);
+      background: var(--secondary-background-color);
     }
 
     .tab-button.active {
-      color: var(#2196F3);
-      border-bottom-color: var(#2196F3);
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
     }
 
     .content {
@@ -101,11 +102,12 @@ export class AnalyticsPanel extends LitElement {
     }
 
     .metric-card {
-      background: var(white);
-      border: 1px solid var(#e0e0e0);
-      border-radius: 8px;
+      background: var(--card-background-color);
+      border: 1px solid var(--divider-color);
+      border-radius: var(--ha-card-border-radius, 12px);
       padding: 16px;
       margin-bottom: 12px;
+      box-shadow: var(--ha-card-box-shadow, 0 2px 4px rgba(0,0,0,0.1));
     }
 
     .metric-header {
@@ -118,30 +120,31 @@ export class AnalyticsPanel extends LitElement {
     .metric-title {
       font-weight: 600;
       font-size: 14px;
+      color: var(--primary-text-color);
     }
 
     .metric-badge {
       display: inline-block;
       padding: 4px 8px;
       border-radius: 4px;
-      background: var(#f5f5f5);
+      background: var(--secondary-background-color);
       font-size: 11px;
       font-weight: 600;
     }
 
     .metric-badge.success {
-      background: var(--ha-success-color, #c8e6c9);
-      color: var(--ha-success-text-color, #2e7d32);
+      background: var(--success-color, #c8e6c9);
+      color: var(--success-state-color, #2e7d32);
     }
 
     .metric-badge.warning {
-      background: var(--ha-warning-color, #fff3cd);
-      color: var(--ha-warning-text-color, #856404);
+      background: var(--warning-color, #fff3cd);
+      color: var(--warning-state-color, #856404);
     }
 
     .metric-badge.danger {
-      background: var(--ha-error-color, #f8d7da);
-      color: var(--ha-error-text-color, #721c24);
+      background: var(--error-color, #f8d7da);
+      color: var(--error-state-color, #721c24);
     }
 
     .metric-grid {
@@ -152,7 +155,7 @@ export class AnalyticsPanel extends LitElement {
     }
 
     .metric-item {
-      background: var(--metric-bg, #f9f9f9);
+      background: var(--secondary-background-color);
       padding: 12px;
       border-radius: 4px;
       text-align: center;

@@ -512,20 +512,39 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
                 return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
 
             export_format = body.get("format", "json")
+            automation_ids = body.get("automation_ids", [])
             include_graphs = body.get("include_graphs", True)
+            include_metadata = body.get("include_metadata", True)
+
+            if not automation_ids:
+                return self.error_response(
+                    "No automation IDs provided", HTTPStatus.BAD_REQUEST
+                )
 
             if export_format not in ("json", "csv", "pdf"):
                 return self.error_response(
                     f"Invalid format: {export_format}", HTTPStatus.BAD_REQUEST
                 )
 
+            # Get automation data for export
+            export_data = []
+            for auto_id in automation_ids:
+                state = self.hass.states.get(auto_id)
+                if state:
+                    automation_data = {
+                        "entity_id": auto_id,
+                        "name": state.attributes.get("friendly_name", auto_id),
+                        "state": state.state,
+                    }
+                    if include_metadata:
+                        automation_data["attributes"] = dict(state.attributes)
+                    export_data.append(automation_data)
+
             result = {
-                "export_id": "export_12345",
                 "format": export_format,
-                "status": "pending",
-                "created_at": None,
-                "file_url": None,
-                "estimated_time_seconds": 5,
+                "status": "completed",
+                "data": export_data,
+                "count": len(export_data),
             }
 
             self.log_response(HTTPStatus.OK)

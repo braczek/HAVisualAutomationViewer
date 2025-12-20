@@ -31,42 +31,107 @@ export class Dashboard extends LitElement {
   @state() error: string | null = null;
   @state() searchQuery = '';
   @state() selectedTheme = 'light';
+  @state() isFullscreen = false;
+  @state() selectedNodeDetails: any = null;
 
   private api: VisualAutoViewApi | null = null;
 
   static styles = css`
     :host {
       display: block;
-      background: var(--card-background, white);
-      color: var(--text-color, #000);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100vh;
+      background: var(--primary-background-color);
+      color: var(--primary-text-color);
+      font-family: var(--paper-font-body1_-_font-family);
+      height: 100%;
       overflow: hidden;
     }
 
     .container {
       display: grid;
-      grid-template-columns: 250px 1fr 1fr;
+      grid-template-columns: 250px 1fr;
+      grid-template-rows: auto 1fr;
       height: 100%;
       gap: 12px;
       padding: 12px;
     }
 
+    .automations-panel {
+      grid-row: 1 / 3;
+    }
+
+    .details-panel {
+      grid-column: 2;
+      grid-row: 1;
+      max-height: 400px;
+    }
+
+    .graph-panel {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
     .panel {
       display: flex;
       flex-direction: column;
-      background: var(--panel-background, #f5f5f5);
-      border-radius: 8px;
+      background: var(--card-background-color);
+      border-radius: var(--ha-card-border-radius, 12px);
       overflow: hidden;
-      border: 1px solid var(--divider-color, #e0e0e0);
+      border: 1px solid var(--divider-color);
+      box-shadow: var(--ha-card-box-shadow, 0 2px 4px rgba(0,0,0,0.1));
+      transition: all 0.3s ease;
     }
 
     .panel-header {
       padding: 12px;
-      background: var(--primary-color, #2196F3);
-      color: white;
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
       font-weight: 600;
       font-size: 14px;
+      border-bottom: 1px solid var(--divider-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .fullscreen-button {
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+      flex: none;
+      width: auto;
+    }
+
+    .fullscreen-button:hover {
+      background: var(--accent-color);
+      transform: scale(1.05);
+    }
+
+    .fullscreen-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .fullscreen-button:disabled:hover {
+      transform: none;
+    }
+
+    .panel-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .panel-content {
@@ -78,19 +143,24 @@ export class Dashboard extends LitElement {
     .search-box {
       padding: 8px;
       margin-bottom: 8px;
-      border: 1px solid var(--divider-color, #ddd);
+      border: 1px solid var(--divider-color);
       border-radius: 4px;
       font-size: 14px;
       width: 100%;
       box-sizing: border-box;
-      background: var(--card-background, white);
-      color: var(--text-color, #000);
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--primary-color);
     }
 
     .automation-item {
       padding: 8px;
       margin-bottom: 4px;
-      background: var(--card-background, white);
+      background: var(--card-background-color);
       border-radius: 4px;
       cursor: pointer;
       border-left: 4px solid transparent;
@@ -102,18 +172,19 @@ export class Dashboard extends LitElement {
       user-select: none;
       pointer-events: auto;
       touch-action: manipulation;
-      color: var(#000);
+      color: var(--primary-text-color);
     }
 
     .automation-item:hover {
-      background: var(#f0f0f0);
-      border-left-color: var(#2196F3);
+      background: var(--secondary-background-color);
+      border-left-color: var(--primary-color);
     }
 
     .automation-item.selected {
-      background: var(#2196F3);
-      color: white;
-      border-left-color: var(#FF5722);
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+      border-left-color: var(--accent-color);
+      font-weight: 600;
     }
 
     .info-panel {
@@ -123,9 +194,10 @@ export class Dashboard extends LitElement {
 
     .info-header {
       padding: 12px;
-      background: var(#2196F3);
-      color: white;
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
       font-weight: 600;
+      border-bottom: 1px solid var(--divider-color);
     }
 
     .info-content {
@@ -141,7 +213,7 @@ export class Dashboard extends LitElement {
 
     .info-label {
       font-weight: 600;
-      color: var(#666);
+      color: var(--secondary-text-color);
       font-size: 11px;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -149,7 +221,7 @@ export class Dashboard extends LitElement {
 
     .info-value {
       font-size: 14px;
-      color: var(#000);
+      color: var(--primary-text-color);
       word-break: break-word;
     }
 
@@ -161,22 +233,22 @@ export class Dashboard extends LitElement {
     }
 
     .stat-box {
-      background: var(white);
+      background: var(--card-background-color);
       padding: 12px;
       border-radius: 4px;
       text-align: center;
-      border: 1px solid var(#ddd);
+      border: 1px solid var(--divider-color);
     }
 
     .stat-number {
       font-size: 20px;
       font-weight: 700;
-      color: var(#2196F3);
+      color: var(--primary-color);
     }
 
     .stat-label {
       font-size: 11px;
-      color: var(#999);
+      color: var(--secondary-text-color);
       text-transform: uppercase;
       margin-top: 4px;
     }
@@ -185,16 +257,16 @@ export class Dashboard extends LitElement {
       display: flex;
       gap: 8px;
       padding: 12px;
-      background: var(#f9f9f9);
-      border-top: 1px solid var(#e0e0e0);
+      background: var(--secondary-background-color);
+      border-top: 1px solid var(--divider-color);
     }
 
     button {
       flex: 1;
       padding: 8px;
-      border: 1px solid var(#2196F3);
-      background: var(white);
-      color: var(#2196F3);
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
@@ -203,8 +275,9 @@ export class Dashboard extends LitElement {
     }
 
     button:hover {
-      background: var(#2196F3);
-      color: white;
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+      border-color: var(--primary-color);
     }
 
     button:disabled {
@@ -217,15 +290,15 @@ export class Dashboard extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(#999);
+      color: var(--secondary-text-color);
     }
 
     .spinner {
       display: inline-block;
       width: 20px;
       height: 20px;
-      border: 3px solid var(#ddd);
-      border-top-color: var(#2196F3);
+      border: 3px solid var(--divider-color);
+      border-top-color: var(--primary-color);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -238,8 +311,8 @@ export class Dashboard extends LitElement {
 
     .error {
       padding: 12px;
-      background: var(#ffebee);
-      color: var(--ha-error-text-color, #c62828);
+      background: var(--error-color, #ffebee);
+      color: var(--error-state-color, #c62828);
       border-radius: 4px;
       margin-bottom: 12px;
       font-size: 12px;
@@ -250,13 +323,141 @@ export class Dashboard extends LitElement {
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: var(#999);
+      color: var(--secondary-text-color);
       text-align: center;
       padding: 20px;
     }
 
     .graph-panel {
       grid-column: 2 / 4;
+    }
+
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--primary-background-color);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fullscreen-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: var(--secondary-background-color);
+      border-bottom: 1px solid var(--divider-color);
+    }
+
+    .fullscreen-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-text-color);
+    }
+
+    .close-fullscreen-button {
+      background: var(--error-color, #d32f2f);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+      flex: none;
+      width: auto;
+    }
+
+    .close-fullscreen-button:hover {
+      background: var(--error-color-dark, #b71c1c);
+      transform: scale(1.05);
+    }
+
+    .node-details {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--secondary-background-color);
+      border-radius: 4px;
+      border: 1px solid var(--divider-color);
+    }
+
+    .node-details-header {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .node-type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .node-type-trigger {
+      background: var(--success-color, #4CAF50);
+      color: white;
+    }
+
+    .node-type-condition {
+      background: var(--info-color, #2196F3);
+      color: white;
+    }
+
+    .node-type-action {
+      background: var(--accent-color, #FF9800);
+      color: white;
+    }
+
+    .yaml-content {
+      margin-top: 8px;
+      padding: 8px;
+      background: var(--primary-background-color);
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre;
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color);
+    }
+
+    .clear-selection {
+      background: var(--secondary-background-color);
+      color: var(--primary-text-color);
+      border: 1px solid var(--divider-color);
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.2s ease;
+    }
+
+    .clear-selection:hover {
+      background: var(--divider-color);
+    }
+
+    .fullscreen-content {
+      flex: 1;
+      overflow: hidden;
+      padding: 16px;
     }
   `;
 
@@ -268,11 +469,39 @@ export class Dashboard extends LitElement {
 
   render() {
     return html`
+      ${this.isFullscreen ? html`
+        <div class="fullscreen-overlay">
+          <div class="fullscreen-header">
+            <div class="fullscreen-title">
+              🔍 ${this.selectedAutomation?.name || 'Automation Graph'}
+            </div>
+            <button class="close-fullscreen-button" @click=${this.toggleFullscreen}>
+              <span>✕</span>
+              <span>Close Fullscreen</span>
+            </button>
+          </div>
+          <div class="fullscreen-content">
+            ${this.selectedAutomation && !this.detailsLoading
+              ? html`
+                  <vav-graph
+                    .nodes=${this.selectedAutomationDetails?.nodes || []}
+                    .edges=${this.selectedAutomationDetails?.edges || []}
+                    @graph-doubleclick=${this.onGraphClick}
+                  ></vav-graph>
+                `
+              : html`
+                  <div class="empty-state">
+                    ${this.detailsLoading ? html`<div class="spinner"></div>` : 'Select an automation to view its graph'}
+                  </div>
+                `}
+          </div>
+        </div>
+      ` : ''}
       <div class="container">
         <!-- Automations List Panel -->
-        <div class="panel">
+        <div class="panel automations-panel">
           <div class="panel-header">
-            Automations
+            <span class="panel-title">Automations</span>
           </div>
           <div class="panel-content">
             ${this.loading && this.automations.length === 0
@@ -303,6 +532,7 @@ export class Dashboard extends LitElement {
                                 ? 'selected'
                                 : ''}"
                               @click=${(e: Event) => {
+                                e.stopPropagation();
                                 console.log('Click event fired on:', automation.name);
                                 this.selectAutomation(automation);
                               }}
@@ -318,9 +548,9 @@ export class Dashboard extends LitElement {
         </div>
 
         <!-- Info Panel -->
-        <div class="panel info-panel">
+        <div class="panel details-panel">
           <div class="panel-header">
-            Details
+            <span class="panel-title">Details</span>
           </div>
           <div class="panel-content">
             ${this.error ? html` <div class="error">${this.error}</div> ` : ''}
@@ -372,6 +602,24 @@ export class Dashboard extends LitElement {
                         <div class="stat-label">Actions</div>
                       </div>
                     </div>
+                    ${this.selectedNodeDetails ? html`
+                      <div class="node-details">
+                        <div class="node-details-header">
+                          <div>
+                            <span class="node-type-badge node-type-${this.selectedNodeDetails.type}">
+                              ${this.selectedNodeDetails.type}
+                            </span>
+                            ${this.selectedNodeDetails.label}
+                          </div>
+                          <button class="clear-selection" @click=${this.clearNodeSelection}>
+                            ✕ Clear
+                          </button>
+                        </div>
+                        ${this.selectedNodeDetails.data ? html`
+                          <div class="yaml-content">${this.formatYaml(this.selectedNodeDetails.data)}</div>
+                        ` : ''}
+                      </div>
+                    ` : ''}
                   `
               : html`
                   <div class="empty-state">
@@ -392,7 +640,11 @@ export class Dashboard extends LitElement {
         <!-- Graph Panel -->
         <div class="panel graph-panel">
           <div class="panel-header">
-            Graph View
+            <span class="panel-title">Graph View</span>
+            <button class="fullscreen-button" @click=${this.toggleFullscreen} ?disabled=${!this.selectedAutomation}>
+              <span>⛶</span>
+              <span>Fullscreen</span>
+            </button>
           </div>
           <div class="panel-content">
             ${this.selectedAutomation
@@ -406,6 +658,7 @@ export class Dashboard extends LitElement {
                     <vav-graph
                       .nodes=${this.selectedAutomationDetails?.nodes || []}
                       .edges=${this.selectedAutomationDetails?.edges || []}
+                      @graph-doubleclick=${this.onGraphClick}
                     ></vav-graph>
                   `
               : html`
@@ -518,6 +771,11 @@ export class Dashboard extends LitElement {
     this.loadAutomationDetails(automation.entity_id);
   }
 
+  private toggleFullscreen() {
+    this.isFullscreen = !this.isFullscreen;
+    this.requestUpdate();
+  }
+
   private onSearchInput(e: Event) {
     this.searchQuery = (e.target as HTMLInputElement).value;
   }
@@ -525,7 +783,32 @@ export class Dashboard extends LitElement {
   private async exportAutomation() {
     if (!this.selectedAutomation) return;
     try {
-      await this.api!.exportAutomation(this.selectedAutomation.entity_id, 'json');
+      const result = await this.api!.exportAutomation(this.selectedAutomation.entity_id, 'json');
+      
+      if (result.success && result.data?.download_url) {
+        // Trigger file download
+        const link = document.createElement('a');
+        link.href = result.data.download_url;
+        link.download = `${this.selectedAutomation.entity_id}_export.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (result.success && result.data?.data) {
+        // If no download URL, create a blob and download it
+        const blob = new Blob([JSON.stringify(result.data.data, null, 2)], {
+          type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${this.selectedAutomation.entity_id}_export.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        this.error = 'Export failed: No data returned';
+      }
     } catch (err) {
       this.error = `Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
     }
@@ -537,6 +820,98 @@ export class Dashboard extends LitElement {
       detail: { automation: this.selectedAutomation },
     });
     this.dispatchEvent(event);
+  }
+
+  private onGraphClick(e: CustomEvent) {
+    const { nodes, edges } = e.detail;
+    
+    if (nodes && nodes.length > 0) {
+      // Node was clicked
+      const nodeId = nodes[0];
+      const node = this.selectedAutomationDetails?.nodes?.find((n: any) => n.id === nodeId);
+      
+      if (node) {
+        this.selectedNodeDetails = {
+          id: node.id,
+          label: node.label,
+          type: node.type,
+          data: node.data
+        };
+        this.requestUpdate();
+      }
+    } else if (edges && edges.length > 0) {
+      // Edge was clicked
+      const edgeId = edges[0];
+      const edge = this.selectedAutomationDetails?.edges?.find((e: any) => 
+        `${e.from}-${e.to}` === edgeId || e.id === edgeId
+      );
+      
+      if (edge) {
+        this.selectedNodeDetails = {
+          id: edgeId,
+          label: edge.label || 'Connection',
+          type: 'edge',
+          data: {
+            from: edge.from,
+            to: edge.to,
+            label: edge.label
+          }
+        };
+        this.requestUpdate();
+      }
+    }
+  }
+
+  private clearNodeSelection() {
+    this.selectedNodeDetails = null;
+    this.requestUpdate();
+  }
+
+  private formatYaml(data: any, indent: number = 0): string {
+    if (data === null || data === undefined) {
+      return 'null';
+    }
+
+    if (typeof data === 'string') {
+      return data;
+    }
+
+    if (typeof data === 'number' || typeof data === 'boolean') {
+      return String(data);
+    }
+
+    if (Array.isArray(data)) {
+      if (data.length === 0) return '[]';
+      const spaces = '  '.repeat(indent);
+      return data.map((item, idx) => {
+        if (typeof item === 'object') {
+          const formatted = this.formatYaml(item, indent + 1);
+          return `${spaces}- ${formatted.replace(/^\s+/, '')}`;
+        }
+        return `${spaces}- ${item}`;
+      }).join('\n');
+    }
+
+    if (typeof data === 'object') {
+      const spaces = '  '.repeat(indent);
+      return Object.entries(data)
+        .map(([key, value]) => {
+          if (typeof value === 'object' && value !== null) {
+            if (Array.isArray(value)) {
+              if (value.length === 0) return `${spaces}${key}: []`;
+              const arrayContent = this.formatYaml(value, indent + 1);
+              return `${spaces}${key}:\n${arrayContent}`;
+            } else {
+              const objContent = this.formatYaml(value, indent + 1);
+              return `${spaces}${key}:\n${objContent}`;
+            }
+          }
+          return `${spaces}${key}: ${value}`;
+        })
+        .join('\n');
+    }
+
+    return String(data);
   }
 }
 

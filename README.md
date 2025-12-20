@@ -1,8 +1,8 @@
 # Visual AutoView - Home Assistant Automation Visualization
 
 **Status**: ✅ **PRODUCTION READY**  
-**Version**: 1.0.0  
-**Date**: December 17, 2025
+**Version**: 1.0.1  
+**Date**: December 19, 2025
 
 ---
 

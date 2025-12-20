@@ -103,47 +103,13 @@ export class VisualAutoViewApp extends LitElement {
   static styles = css`
     :host {
       display: block;
-      /* Light theme colors (default) */
-      --primary-color: #2196F3;
-      --accent-color: #FF9800;
-      --divider-color: #e0e0e0;
-      --panel-background: #f5f5f5;
-      --card-background: white;
-      --text-color: #000;
-      --secondary-text: #666;
-      --hover-background: #f0f0f0;
-      --control-background: #f9f9f9;
-      --metric-bg: #f9f9f9;
-      --success-color: #4CAF50;
-      --warning-color: #FFC107;
-      --error-color: #F44336;
-
       height: 100vh;
       overflow: hidden;
-      background: var(--card-background);
-      color: var(--text-color);
-      font-family: var(--ha-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-        Arial, sans-serif);
+      background: var(--primary-background-color, #fafafa);
+      color: var(--primary-text-color, #212121);
+      font-family: var(--paper-font-body1_-_font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Dark mode overrides */
-    :host-context(.dark-mode),
-    :host(.dark-mode) {
-      --primary-color: #64B5F6;
-      --accent-color: #FFB74D;
-      --divider-color: #424242;
-      --panel-background: #1e1e1e;
-      --card-background: #2c2c2c;
-      --text-color: #e1e1e1;
-      --secondary-text: #b0b0b0;
-      --hover-background: #3a3a3a;
-      --control-background: #2c2c2c;
-      --metric-bg: #2c2c2c;
-      --success-color: #81C784;
-      --warning-color: #FFD54F;
-      --error-color: #E57373;
     }
 
     .app-container {
@@ -156,10 +122,11 @@ export class VisualAutoViewApp extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--primary-color);
-      color: white;
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
       padding: 12px 16px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: var(--ha-card-box-shadow, 0 2px 4px rgba(0, 0, 0, 0.1));
+      border-bottom: 1px solid var(--divider-color);
       z-index: 100;
     }
 
@@ -182,9 +149,9 @@ export class VisualAutoViewApp extends LitElement {
 
     .nav-button {
       padding: 8px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
+      border: 1px solid var(--divider-color);
+      background: var(--card-background-color);
+      color: var(--primary-text-color);
       border-radius: 4px;
       cursor: pointer;
       font-size: 13px;
@@ -193,11 +160,15 @@ export class VisualAutoViewApp extends LitElement {
     }
 
     .nav-button:hover {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.5);
+      background: var(--secondary-background-color);
+      border-color: var(--primary-color);
     }
 
     .nav-button.active {
+      background: var(--primary-color);
+      color: var(--text-primary-color, white);
+      border-color: var(--primary-color);
+    }
       background: rgba(255, 255, 255, 0.3);
       border-color: white;
     }
@@ -298,7 +269,7 @@ export class VisualAutoViewApp extends LitElement {
             <div class="status-dot"></div>
             <span>Connected to Home Assistant</span>
           </div>
-          <span>Visual AutoView v1.0.0</span>
+          <span>Visual AutoView v1.0.1</span>
         </div>
       </div>
     `;
