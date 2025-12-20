@@ -65,20 +65,21 @@ jobs:
         test -f install.ps1 && echo "install.ps1" >> release_files.txt || true
         test -f INSTALLATION.md && echo "INSTALLATION.md" >> release_files.txt || true
     
-    - name: Delete auto-created release
+    - name: Delete auto-created release if exists
+      continue-on-error: true
       run: |
-        gh release delete v${{ steps.changelog.outputs.version }} --yes || true
+        gh release delete ${{ github.ref_name }} --yes --repo ${{ github.repository }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1
       with:
-        files: |
+        artifacts: |
           visualautoview-${{ steps.changelog.outputs.version }}.zip
           visualautoview.zip
-        body_path: changelog.txt
+        bodyFile: changelog.txt
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        makeLatest: true
