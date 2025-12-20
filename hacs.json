@@ -3,24 +3,9 @@
     "content_in_root": false,
     "render_readme": true,
     "country": [
-        "US",
-        "GB",
-        "DE",
-        "FR",
-        "ES",
-        "IT",
-        "NL",
-        "PL",
-        "SE",
-        "NO",
-        "DK",
-        "FI"
-    ],
-    "domains": [
-        "automation"
+        "US"
     ],
     "homeassistant": "2023.11.0",
-    "iot_class": "Local Polling",
     "zip_release": true,
     "filename": "visualautoview.zip"
 }
