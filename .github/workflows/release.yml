@@ -71,14 +71,19 @@ jobs:
     - name: List created files
       run: ls -lah *.zip
     
-    - name: Create and push git tag
-      run: |
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
-        git tag -a v${{ github.event.inputs.version }} -m "Release v${{ github.event.inputs.version }}"
-        git push origin v${{ github.event.inputs.version }}
+    - name: Create draft GitHub Release
+      id: create_release
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
+        bodyFile: changelog.txt
+        draft: true
+        prerelease: false
+        tag: v${{ github.event.inputs.version }}
+        allowUpdates: false
+        skipIfReleaseExists: false
     
-    - name: Create GitHub Release
+    - name: Publish release
       uses: ncipollo/release-action@v1
       with:
         artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
