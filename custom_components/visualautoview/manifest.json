@@ -12,8 +12,5 @@
     "dependencies": [
         "http"
     ],
-    "homeassistant": {
-        "min_version": "2023.11.0"
-    },
     "iot_class": "calculated"
 }
