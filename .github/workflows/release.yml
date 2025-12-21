@@ -33,17 +33,23 @@ jobs:
     
     - name: Build artifacts
       run: |
-        mkdir -p release
-        cp -r custom_components/visualautoview release/
-        
+        # Build frontend first
         cd frontend
         npm ci
         npm run build
-        mkdir -p ../release/visualautoview/frontend_dist
-        cp -r dist/* ../release/visualautoview/frontend_dist/
-        # Verify panel integration file was built
-        ls -la dist/visualautoview-panel.js || echo "Warning: Panel file not found"
         cd ..
+        
+        # Create release directory with proper structure
+        mkdir -p release_work/visualautoview/frontend_dist
+        
+        # Copy component files
+        cp -r custom_components/visualautoview/* release_work/visualautoview/
+        
+        # Copy built frontend
+        cp -r frontend/dist/* release_work/visualautoview/frontend_dist/
+        
+        # Verify panel integration file was built
+        ls -la release_work/visualautoview/frontend_dist/visualautoview-panel.js || echo "Warning: Panel file not found"
     
     - name: Generate changelog
       id: changelog
@@ -54,10 +60,10 @@ jobs:
     
     - name: Create release archive
       run: |
-        VERSION=${{ steps.changelog.outputs.version }}
-        cd release && zip -r ../visualautoview-$VERSION.zip visualautoview && cd ..
+        VERSION=${{ github.event.inputs.version }}
+        cd release_work && zip -r ../visualautoview-$VERSION.zip visualautoview && cd ..
         # Also create a simple visualautoview.zip for HACS
-        cd release && zip -r ../visualautoview.zip visualautoview && cd ..
+        cd release_work && zip -r ../visualautoview.zip visualautoview && cd ..
     
     - name: Prepare release files
       run: |
@@ -83,13 +89,13 @@ jobs:
         allowUpdates: false
         skipIfReleaseExists: false
     
-    - name: Publish release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
-        bodyFile: changelog.txt
-        draft: false
-        prerelease: false
-        tag: v${{ github.event.inputs.version }}
-        allowUpdates: true
-        skipIfReleaseExists: false
+    # - name: Publish release
+    #   uses: ncipollo/release-action@v1
+    #   with:
+    #     artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
+    #     bodyFile: changelog.txt
+    #     draft: false
+    #     prerelease: false
+    #     tag: v${{ github.event.inputs.version }}
+    #     allowUpdates: true
+    #     skipIfReleaseExists: false
