@@ -1,6 +1,7 @@
 """Visual AutoView - Home Assistant Automation Graph Visualization Integration."""
 
 import logging
+import os
 from typing import Any
 
 from homeassistant import config_entries
@@ -23,12 +24,35 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Visual AutoView integration."""
-    _LOGGER.warning("========== Visual AutoView: Starting setup ==========")
-    _LOGGER.info("Visual AutoView integration is being loaded")
+    _LOGGER.info("Visual AutoView: async_setup called")
+    
+    # Store a reference to the domain
+    if DOMAIN not in hass.data:
+        hass.data[DOMAIN] = {}
+    
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Visual AutoView from a config entry."""
+    _LOGGER.warning("========== Visual AutoView: Starting setup from config entry ==========")
+    _LOGGER.info(f"Visual AutoView: Setting up config entry: {entry.entry_id}")
 
     # Store a reference to the domain
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
+
+    # Register static path for frontend files
+    frontend_path = os.path.join(os.path.dirname(__file__), "frontend_dist")
+    if os.path.exists(frontend_path):
+        _LOGGER.info(f"Visual AutoView: Registering static path: {frontend_path}")
+        hass.http.register_static_path(
+            "/visualautoview_static",
+            frontend_path,
+            cache_headers=False,
+        )
+    else:
+        _LOGGER.error(f"Visual AutoView: Frontend path not found: {frontend_path}")
 
     # Set up API endpoints
     _LOGGER.info("Visual AutoView: Setting up API endpoints...")
@@ -49,7 +73,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         config={
             "_panel_custom": {
                 "name": "visualautoview-panel",
-                "module_url": "/local/visualautoview/visualautoview-panel.js",
+                "module_url": "/visualautoview_static/visualautoview-panel.js",
             }
         },
         require_admin=False,
@@ -57,12 +81,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     _LOGGER.warning("========== Visual AutoView: Setup complete ==========")
     _LOGGER.info("Visual AutoView: Panel registered in sidebar")
-    return True
-
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Visual AutoView from a config entry."""
-    _LOGGER.debug(f"Setting up Visual AutoView config entry: {entry.entry_id}")
 
     # Store config entry reference
     hass.data[DOMAIN][entry.entry_id] = {
