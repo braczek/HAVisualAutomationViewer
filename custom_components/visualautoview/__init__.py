@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.components import frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -47,12 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if os.path.exists(frontend_path):
         _LOGGER.info(f"Visual AutoView: Registering static path: {frontend_path}")
         await hass.http.async_register_static_paths(
-            [
-                {
-                    "url_path": "/visualautoview_static",
-                    "path": frontend_path,
-                }
-            ]
+            [StaticPathConfig("/visualautoview_static", frontend_path, True)]
         )
     else:
         _LOGGER.error(f"Visual AutoView: Frontend path not found: {frontend_path}")
