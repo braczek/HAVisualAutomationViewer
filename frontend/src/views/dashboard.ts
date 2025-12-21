@@ -777,6 +777,7 @@ export class Dashboard extends LitElement {
 
   private onSearchInput(e: Event) {
     this.searchQuery = (e.target as HTMLInputElement).value;
+    this.requestUpdate();
   }
 
   private async exportAutomation() {
@@ -853,6 +854,55 @@ export class Dashboard extends LitElement {
     this.requestUpdate();
   }
 
+  private getEntityName(entityId: string): string | null {
+    if (!this.hass || !entityId) return null;
+    
+    const state = this.hass.states[entityId];
+    if (state?.attributes?.friendly_name) {
+      return state.attributes.friendly_name;
+    }
+    
+    return null;
+  }
+
+  private getDeviceName(deviceId: string): string | null {
+    if (!this.hass || !deviceId) return null;
+    
+    // Try to get device info from device registry
+    const deviceRegistry = this.hass.devices;
+    if (deviceRegistry && deviceRegistry[deviceId]) {
+      return deviceRegistry[deviceId].name_by_user || deviceRegistry[deviceId].name || null;
+    }
+    
+    // Fallback: try to find an entity with this device_id and use its friendly name
+    for (const [entityId, state] of Object.entries(this.hass.states)) {
+      if ((state as any).attributes?.device_id === deviceId) {
+        const friendlyName = (state as any).attributes?.friendly_name;
+        if (friendlyName) {
+          return friendlyName;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  private formatValueWithLabel(key: string, value: string): string {
+    let label: string | null = null;
+    
+    if (key === 'entity_id') {
+      label = this.getEntityName(value);
+    } else if (key === 'device_id') {
+      label = this.getDeviceName(value);
+    }
+    
+    if (label) {
+      return `${value} (${label})`;
+    }
+    
+    return value;
+  }
+
   private formatYaml(data: any, indent: number = 0): string {
     if (data === null || data === undefined) {
       return 'null';
@@ -892,7 +942,9 @@ export class Dashboard extends LitElement {
               return `${spaces}${key}:\n${objContent}`;
             }
           }
-          return `${spaces}${key}: ${value}`;
+          // Add friendly names/labels for entity_id and device_id
+          const formattedValue = typeof value === 'string' ? this.formatValueWithLabel(key, value) : value;
+          return `${spaces}${key}: ${formattedValue}`;
         })
         .join('\n');
     }
