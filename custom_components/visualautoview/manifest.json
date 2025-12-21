@@ -9,6 +9,7 @@
         "http"
     ],
     "documentation": "https://github.com/braczek/HAVisualAutomationViewer",
+    "integration_type": "service",
     "iot_class": "calculated",
     "issue_tracker": "https://github.com/braczek/HAVisualAutomationViewer/issues",
     "requirements": [],
