@@ -93,10 +93,11 @@ jobs:
     - name: Publish release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
+        #artifacts: visualautoview-${{ github.event.inputs.version }}.zip,visualautoview.zip
         bodyFile: changelog.txt
         draft: false
         prerelease: false
         tag: v${{ github.event.inputs.version }}
         allowUpdates: true
         skipIfReleaseExists: false
+        replacesArtifacts: false
