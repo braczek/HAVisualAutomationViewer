@@ -61,9 +61,10 @@ jobs:
     - name: Create release archive
       run: |
         VERSION=${{ github.event.inputs.version }}
-        cd release_work && zip -r ../visualautoview-$VERSION.zip visualautoview && cd ..
+        # Create versioned zip with proper structure
+        cd release_work/visualautoview && zip -r ../../visualautoview-$VERSION.zip . && cd ../..
         # Also create a simple visualautoview.zip for HACS
-        cd release_work && zip -r ../visualautoview.zip visualautoview && cd ..
+        cd release_work/visualautoview && zip -r ../../visualautoview.zip . && cd ../..
     
     - name: Prepare release files
       run: |
