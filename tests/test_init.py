@@ -99,7 +99,7 @@ class TestAsyncSetupEntry:
             mock_entry, []
         )
         assert (
-            f"Setting up Visual AutoView config entry: {mock_entry.entry_id}"
+            f"Visual AutoView: Setting up config entry: {mock_entry.entry_id}"
             in caplog.text
         )
 

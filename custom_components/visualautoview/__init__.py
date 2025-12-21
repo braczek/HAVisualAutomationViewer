@@ -26,17 +26,19 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Visual AutoView integration."""
     _LOGGER.info("Visual AutoView: async_setup called")
-    
+
     # Store a reference to the domain
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
-    
+
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Visual AutoView from a config entry."""
-    _LOGGER.warning("========== Visual AutoView: Starting setup from config entry ==========")
+    _LOGGER.warning(
+        "========== Visual AutoView: Starting setup from config entry =========="
+    )
     _LOGGER.info(f"Visual AutoView: Setting up config entry: {entry.entry_id}")
 
     # Store a reference to the domain
