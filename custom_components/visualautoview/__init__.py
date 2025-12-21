@@ -46,10 +46,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     frontend_path = os.path.join(os.path.dirname(__file__), "frontend_dist")
     if os.path.exists(frontend_path):
         _LOGGER.info(f"Visual AutoView: Registering static path: {frontend_path}")
-        hass.http.register_static_path(
-            "/visualautoview_static",
-            frontend_path,
-            cache_headers=False,
+        await hass.http.async_register_static_paths(
+            [
+                {
+                    "url_path": "/visualautoview_static",
+                    "path": frontend_path,
+                }
+            ]
         )
     else:
         _LOGGER.error(f"Visual AutoView: Frontend path not found: {frontend_path}")
