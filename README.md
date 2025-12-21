@@ -23,17 +23,18 @@ Visual AutoView is a Home Assistant integration that provides advanced visualiza
 
 ## 🚀 Installation
 
-### Automatic Installation (Recommended)
+### HACS Installation (Recommended)
 
-**Windows (PowerShell):**
-```powershell
-irm https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.ps1 | iex
-```
-
-**Linux/macOS:**
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/braczek/HAVisualAutomationViewer/main/install.sh)
-```
+1. Open HACS in your Home Assistant instance
+2. Click on the three dots in the top right corner
+3. Select "Custom repositories"
+4. Add the repository URL: `https://github.com/braczek/HAVisualAutomationViewer`
+5. Select "Integration" as the category
+6. Click "Add"
+7. Search for "Visual AutoView" in HACS
+8. Click "Download"
+9. Restart Home Assistant
+10. Go to **Settings → Devices & Services** and look for "Visual AutoView" in the Integrations panel
 
 ### Manual Installation
 
@@ -41,20 +42,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/braczek/HAVisualAutomationVi
 2. Extract the `visualautoview` folder to your Home Assistant's `custom_components/` directory
 3. Restart Home Assistant
 4. Go to **Settings → Devices & Services** and look for "Visual AutoView" in the Integrations panel
-
-### Installation Verification
-
-Run the verification script to ensure everything is set up correctly:
-
-**Windows:**
-```powershell
-.\verify_install.ps1
-```
-
-**Linux/macOS:**
-```bash
-bash verify_install.sh
-```
 
 ## 📚 Getting Started
 
