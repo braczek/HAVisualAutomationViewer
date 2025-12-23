@@ -344,10 +344,10 @@ export class AnalyticsPanel extends LitElement {
       `;
     }
 
-    if (!this.selectedAutomation || !this.performanceMetrics) {
+    if (!this.performanceMetrics) {
       return html`
         <div class="empty-state">
-          Select an automation to view performance metrics
+          ${this.selectedAutomation ? 'Loading performance metrics...' : 'System-wide performance data'}
         </div>
       `;
     }
@@ -426,10 +426,10 @@ export class AnalyticsPanel extends LitElement {
       `;
     }
 
-    if (!this.selectedAutomation || !this.dependencyInfo) {
+    if (!this.dependencyInfo) {
       return html`
         <div class="empty-state">
-          Select an automation to view dependency analysis
+          ${this.selectedAutomation ? 'No dependency information found' : 'Loading system dependencies...'}
         </div>
       `;
     }
@@ -495,10 +495,10 @@ export class AnalyticsPanel extends LitElement {
       `;
     }
 
-    if (!this.selectedAutomation || this.entityRelationships.length === 0) {
+    if (this.entityRelationships.length === 0) {
       return html`
         <div class="empty-state">
-          No entity relationships found for this automation
+          ${this.selectedAutomation ? 'No entity relationships found' : 'Loading entity relationships...'}
         </div>
       `;
     }
@@ -540,33 +540,64 @@ export class AnalyticsPanel extends LitElement {
   }
 
   private async loadAnalytics() {
-    if (!this.selectedAutomation || !this.api) return;
+    if (!this.api) return;
 
     this.loading = true;
     this.error = null;
 
     try {
-      // Load performance metrics
-      const perfResult = await this.api.getPerformanceMetrics(this.selectedAutomation);
-      this.performanceMetrics = perfResult.metrics || null;
+      // If an automation is selected, load specific analytics
+      if (this.selectedAutomation) {
+        // Load performance metrics
+        const perfResult = await this.api.getPerformanceMetrics(this.selectedAutomation);
+        this.performanceMetrics = perfResult.data || null;
 
-      // Load dependency info
-      const depResult = await this.api.getDependencyGraph();
-      const depInfo = depResult.automations?.find(
-        (a: any) => a.id === this.selectedAutomation
-      );
-      if (depInfo) {
+        // Load dependency info
+        const depResult = await this.api.getDependencyGraph();
+        const depInfo = depResult.data?.automations?.find(
+          (a: any) => a.id === this.selectedAutomation
+        );
+        if (depInfo) {
+          this.dependencyInfo = {
+            automation_id: depInfo.id,
+            dependent_automations: depInfo.dependencies || [],
+            circular_dependencies: depInfo.has_circular || false,
+            chain_depth: depInfo.depth || 0,
+          };
+        }
+
+        // Load entity relationships for the specific automation
+        const relResult = await this.api.getEntityRelationships(this.selectedAutomation);
+        this.entityRelationships = relResult.data?.relationships || [];
+      } else {
+        // No automation selected - show system-wide stats
+        // Load system performance
+        const sysResult = await this.api.getSystemPerformance();
+        if (sysResult.data) {
+          // Create a summary performance metric from system data
+          this.performanceMetrics = {
+            automation_id: 'system',
+            avg_execution_time: sysResult.data.avg_execution_time || 0,
+            min_execution_time: sysResult.data.min_execution_time || 0,
+            max_execution_time: sysResult.data.max_execution_time || 0,
+            total_executions: sysResult.data.total_executions || 0,
+            success_rate: sysResult.data.success_rate || 0,
+          };
+        }
+
+        // Load overall dependency graph
+        const depResult = await this.api.getDependencyGraph();
         this.dependencyInfo = {
-          automation_id: depInfo.id,
-          dependent_automations: depInfo.dependencies || [],
-          circular_dependencies: depInfo.has_circular || false,
-          chain_depth: depInfo.depth || 0,
+          automation_id: 'system',
+          dependent_automations: depResult.data?.automations?.map((a: any) => a.id) || [],
+          circular_dependencies: depResult.data?.has_circular_dependencies || false,
+          chain_depth: depResult.data?.max_chain_depth || 0,
         };
-      }
 
-      // Load entity relationships
-      const relResult = await this.api.getEntityRelationships();
-      this.entityRelationships = relResult.relationships || [];
+        // Load all entity relationships
+        const relResult = await this.api.getEntityRelationships();
+        this.entityRelationships = relResult.data?.relationships || [];
+      }
     } catch (err) {
       this.error = `Failed to load analytics: ${err instanceof Error ? err.message : 'Unknown error'}`;
     } finally {

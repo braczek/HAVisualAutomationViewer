@@ -196,6 +196,7 @@ export class VisualAutoViewPanel extends LitElement {
               ></vav-dashboard>`
             : html`<vav-analytics
                 .hass=${this.hass}
+                .selectedAutomation=${this.selectedAutomation}
               ></vav-analytics>`}
         </div>
       </div>

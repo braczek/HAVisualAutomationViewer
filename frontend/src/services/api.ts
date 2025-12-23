@@ -356,7 +356,7 @@ export class VisualAutoViewApi {
     automationId: string,
     format: 'png' | 'svg' | 'pdf' | 'json' = 'png',
     quality: 'low' | 'medium' | 'high' = 'medium'
-  ): Promise<ApiResponse<{ file_path: string; download_url: string }>> {
+  ): Promise<ApiResponse<{ format: string; status: string; data: any[]; count: number; download_url?: string; file_path?: string }>> {
     const response = await this.api.post('/export', {
       automation_ids: [automationId],
       format,

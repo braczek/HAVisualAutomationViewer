@@ -78,17 +78,61 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
 
             # Get automation data for export
             export_data = []
+            _LOGGER.debug(f"Exporting automations: {automation_ids}")
+            
+            automation_component = self.hass.data.get("automation")
+            
             for auto_id in automation_ids:
                 state = self.hass.states.get(auto_id)
-                if state:
-                    automation_data = {
-                        "entity_id": auto_id,
-                        "name": state.attributes.get("friendly_name", auto_id),
-                        "state": state.state,
-                    }
-                    if include_metadata:
-                        automation_data["attributes"] = dict(state.attributes)
-                    export_data.append(automation_data)
+                _LOGGER.debug(f"Checking automation {auto_id}, state: {state}")
+                
+                if not state:
+                    _LOGGER.warning(f"Automation {auto_id} not found in state machine")
+                    continue
+                
+                automation_data = {
+                    "entity_id": auto_id,
+                    "name": state.attributes.get("friendly_name", auto_id),
+                    "state": state.state,
+                }
+                
+                # Get detailed configuration if available
+                if automation_component:
+                    for entity in automation_component.entities:
+                        if entity.entity_id == auto_id:
+                            if include_metadata:
+                                config = {}
+                                
+                                # Get triggers
+                                if hasattr(entity, "_trigger_config"):
+                                    config["triggers"] = entity._trigger_config
+                                elif hasattr(entity, "trigger"):
+                                    config["triggers"] = entity.trigger
+                                
+                                # Get conditions
+                                if hasattr(entity, "_cond_config"):
+                                    config["conditions"] = entity._cond_config
+                                
+                                # Get actions
+                                if hasattr(entity, "_action_config"):
+                                    config["actions"] = entity._action_config
+                                elif hasattr(entity, "action_script") and hasattr(
+                                    entity.action_script, "sequence"
+                                ):
+                                    config["actions"] = entity.action_script.sequence
+                                
+                                # Get description
+                                if hasattr(entity, "description"):
+                                    config["description"] = entity.description
+                                
+                                automation_data["configuration"] = config
+                            break
+                
+                if include_metadata and "configuration" not in automation_data:
+                    # Fallback to state attributes if config not found
+                    automation_data["attributes"] = dict(state.attributes)
+                
+                export_data.append(automation_data)
 
             result = {
                 "format": export_format,

@@ -787,16 +787,36 @@ export class Dashboard extends LitElement {
       const result = await this.api!.exportAutomation(this.selectedAutomation.entity_id, 'json');
       console.log('Export API result:', result);
       
-      if (result.success && result.data?.download_url) {
-        // Trigger file download
-        const link = document.createElement('a');
-        link.href = result.data.download_url;
-        link.download = `${this.selectedAutomation.entity_id}_export.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      if (result.success && result.data) {
+        // Check if we have a download_url (for file-based exports like PDF)
+        if (result.data.download_url) {
+          const link = document.createElement('a');
+          link.href = result.data.download_url;
+          link.download = `${this.selectedAutomation.entity_id}_export.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } 
+        // For JSON exports, create a blob and download it
+        else if (result.data.data) {
+          const jsonData = JSON.stringify(result.data.data, null, 2);
+          const blob = new Blob([jsonData], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${this.selectedAutomation.entity_id}_export.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up the URL object
+          URL.revokeObjectURL(url);
+        } else {
+          this.error = 'Export failed: No data returned';
+        }
       } else {
-        this.error = 'Export failed: No download URL returned';
+        this.error = 'Export failed: Invalid response';
       }
     } catch (err) {
       this.error = `Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
