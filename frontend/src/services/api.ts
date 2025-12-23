@@ -69,7 +69,8 @@ export class VisualAutoViewApi {
         config.headers.Authorization = `Bearer ${token}`;
         console.debug('[API] Using auth token from:', this.getTokenSource());
       } else {
-        console.warn('[API] No Home Assistant token found');
+        console.warn('[API] No authentication token found! Request will fail with 401.');
+        console.warn('[API] Token detection sources checked:', this.getTokenDetectionAttempts());
       }
       return config;
     });
@@ -232,6 +233,54 @@ export class VisualAutoViewApi {
 
     console.error('[API] No Home Assistant token found in any source. The extension may not work properly on mobile apps. Please ensure you are accessing this from within Home Assistant.');
     return null;
+  }
+
+  /**
+   * Get diagnostic info about token detection attempts
+   */
+  private getTokenDetectionAttempts(): Record<string, string> {
+    const attempts: Record<string, string> = {};
+    
+    // Check each source
+    const urlParams = new URLSearchParams(window.location.search);
+    attempts['URL params'] = urlParams.get('token') || urlParams.get('access_token') ? 'Found' : 'Not found';
+    
+    try {
+      const hassTokens = localStorage.getItem('hassTokens');
+      attempts['localStorage.hassTokens'] = hassTokens ? 'Found' : 'Not found';
+    } catch (e) {
+      attempts['localStorage.hassTokens'] = 'Error: ' + String(e);
+    }
+    
+    try {
+      const hassConnection = (window as any).hassConnection;
+      attempts['window.hassConnection'] = hassConnection?.auth?.data?.access_token ? 'Found' : 'Not found';
+    } catch (e) {
+      attempts['window.hassConnection'] = 'Error: ' + String(e);
+    }
+    
+    try {
+      const hass = (window as any).hass;
+      attempts['window.hass.connection'] = hass?.connection?.auth?.data?.access_token ? 'Found' : 'Not found';
+    } catch (e) {
+      attempts['window.hass.connection'] = 'Error: ' + String(e);
+    }
+    
+    try {
+      const hassioToken = (window as any).hassio?.token;
+      attempts['window.hassio.token'] = hassioToken ? 'Found' : 'Not found';
+    } catch (e) {
+      attempts['window.hassio.token'] = 'Error: ' + String(e);
+    }
+    
+    try {
+      const sessionToken = sessionStorage.getItem('ha_access_token');
+      attempts['sessionStorage.ha_access_token'] = sessionToken ? 'Found' : 'Not found';
+    } catch (e) {
+      attempts['sessionStorage.ha_access_token'] = 'Error: ' + String(e);
+    }
+    
+    return attempts;
   }
 
   // Phase 1: Graph Parsing

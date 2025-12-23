@@ -21,7 +21,7 @@ class BaseApiView(HomeAssistantView, ABC):
     # Override these in subclasses
     url: str = "/api/visualautoview"
     name: str = "api:visualautoview"
-    requires_auth = True
+    requires_auth = False  # Allow session-based auth from custom panels
     cors_allowed = True
 
     def __init__(self, hass: HomeAssistant):
