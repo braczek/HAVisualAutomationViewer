@@ -26,17 +26,20 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Visual AutoView integration."""
+    _LOGGER.warning("========== Visual AutoView: Setting up integration ==========")
     _LOGGER.info("Visual AutoView integration is being loaded")
 
     # Store a reference to the domain
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
 
-    # Set up API endpoints
+    # Set up API endpoints (global, not per config entry)
+    _LOGGER.info("Visual AutoView: Setting up API endpoints...")
     api_setup_ok = await setup_api(hass)
     if not api_setup_ok:
-        _LOGGER.warning("FAILED to setup API endpoints")
+        _LOGGER.warning("Visual AutoView: FAILED to setup API endpoints")
 
+    _LOGGER.warning("========== Visual AutoView: Integration setup complete ==========")
     return True
 
 
@@ -63,14 +66,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     else:
         _LOGGER.error(f"Visual AutoView: Frontend path not found: {frontend_path}")
-
-    # Set up API endpoints
-    _LOGGER.info("Visual AutoView: Setting up API endpoints...")
-    api_setup_ok = await setup_api(hass)
-    if not api_setup_ok:
-        _LOGGER.error("Visual AutoView: FAILED to setup API endpoints!")
-    else:
-        _LOGGER.warning("Visual AutoView: API setup completed successfully")
 
     # Register the custom panel in HA's sidebar
     _LOGGER.info("Visual AutoView: Registering frontend panel...")
