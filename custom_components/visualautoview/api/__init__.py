@@ -4,10 +4,16 @@ import logging
 
 from homeassistant.core import HomeAssistant
 
+from .analytics_api import AnalyticsEndpoints
+from .automation_api import AutomationEndpoints
 from .base import ApiRegistry
-from .phase1_api import Phase1Endpoints
-from .phase2_api import Phase2Endpoints
-from .phase3_api import Phase3Endpoints
+from .dashboard_api import DashboardEndpoints
+from .execution_api import ExecutionEndpoints
+from .export_api import ExportEndpoints
+from .relationship_api import RelationshipEndpoints
+from .search_api import SearchEndpoints
+from .template_api import TemplateEndpoints
+from .theme_api import ThemeEndpoints
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,35 +28,31 @@ async def setup_api(hass: HomeAssistant) -> bool:
         registry = ApiRegistry(hass)
         _LOGGER.info("Visual AutoView API: Registry created")
 
-        # Register Phase 1 endpoints
-        _LOGGER.info("Visual AutoView API: Creating Phase 1 endpoints")
-        phase1_endpoints = Phase1Endpoints.create_endpoints(hass)
-        _LOGGER.info(
-            f"Visual AutoView API: Created {len(phase1_endpoints)} Phase 1 endpoints"
-        )
-        for endpoint in phase1_endpoints:
-            registry.register(endpoint)
-            _LOGGER.debug(f"  - Registered: {endpoint.url}")
+        # Define all endpoint groups
+        endpoint_groups = [
+            ("Automation", AutomationEndpoints),
+            ("Search", SearchEndpoints),
+            ("Export", ExportEndpoints),
+            ("Theme", ThemeEndpoints),
+            ("Dashboard", DashboardEndpoints),
+            ("Analytics", AnalyticsEndpoints),
+            ("Relationship", RelationshipEndpoints),
+            ("Execution", ExecutionEndpoints),
+            ("Template", TemplateEndpoints),
+        ]
 
-        # Register Phase 2 endpoints
-        _LOGGER.info("Visual AutoView API: Creating Phase 2 endpoints")
-        phase2_endpoints = Phase2Endpoints.create_endpoints(hass)
-        _LOGGER.info(
-            f"Visual AutoView API: Created {len(phase2_endpoints)} Phase 2 endpoints"
-        )
-        for endpoint in phase2_endpoints:
-            registry.register(endpoint)
-            _LOGGER.debug(f"  - Registered: {endpoint.url}")
-
-        # Register Phase 3 endpoints
-        _LOGGER.info("Visual AutoView API: Creating Phase 3 endpoints")
-        phase3_endpoints = Phase3Endpoints.create_endpoints(hass)
-        _LOGGER.info(
-            f"Visual AutoView API: Created {len(phase3_endpoints)} Phase 3 endpoints"
-        )
-        for endpoint in phase3_endpoints:
-            registry.register(endpoint)
-            _LOGGER.debug(f"  - Registered: {endpoint.url}")
+        # Register all endpoint groups
+        total_endpoints = 0
+        for group_name, endpoint_class in endpoint_groups:
+            _LOGGER.info(f"Visual AutoView API: Creating {group_name} endpoints")
+            endpoints = endpoint_class.create_endpoints(hass)
+            _LOGGER.info(
+                f"Visual AutoView API: Created {len(endpoints)} {group_name} endpoints"
+            )
+            for endpoint in endpoints:
+                registry.register(endpoint)
+                _LOGGER.debug(f"  - Registered: {endpoint.url}")
+            total_endpoints += len(endpoints)
 
         # Register all endpoints with Home Assistant HTTP
         _LOGGER.warning(

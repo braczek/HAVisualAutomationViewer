@@ -288,7 +288,7 @@ export class VisualAutoViewApi {
     automationId: string,
     automationData: any
   ): Promise<ApiResponse<GraphData>> {
-    const response = await this.api.post('/phase1/parse', {
+    const response = await this.api.post('/automations/parse', {
       automation_id: automationId,
       automation_data: automationData,
     });
@@ -296,7 +296,7 @@ export class VisualAutoViewApi {
   }
 
   async getAutomationGraph(automationId: string): Promise<ApiResponse<GraphData>> {
-    const response = await this.api.get(`/phase1/automations/${automationId}/graph`);
+    const response = await this.api.get(`/automations/${automationId}/graph`);
     return response.data;
   }
 
@@ -309,7 +309,7 @@ export class VisualAutoViewApi {
     per_page: number;
     total_pages: number;
   }>> {
-    const response = await this.api.get('/phase1/automations', {
+    const response = await this.api.get('/automations', {
       params: { page, per_page: perPage },
     });
     // Axios wraps response in .data, so response.data contains our ApiResponse
@@ -326,7 +326,7 @@ export class VisualAutoViewApi {
       actions: number;
     };
   }>> {
-    const response = await this.api.post('/phase1/validate', {
+    const response = await this.api.post('/automations/validate', {
       automation_data: automationData,
     });
     return response.data;
@@ -338,7 +338,7 @@ export class VisualAutoViewApi {
     matchType: 'contains' | 'exact' | 'regex' = 'contains',
     limit: number = 10
   ): Promise<ApiResponse<SearchResult[]>> {
-    const response = await this.api.post('/phase2/search', {
+    const response = await this.api.post('/search', {
       query,
       match_type: matchType,
       limit,
@@ -347,7 +347,7 @@ export class VisualAutoViewApi {
   }
 
   async advancedSearch(filters: Record<string, any>): Promise<ApiResponse<SearchResult[]>> {
-    const response = await this.api.post('/phase2/search/advanced', filters);
+    const response = await this.api.post('/search/advanced', filters);
     return response.data;
   }
 
@@ -356,8 +356,8 @@ export class VisualAutoViewApi {
     automationId: string,
     format: 'png' | 'svg' | 'pdf' | 'json' = 'png',
     quality: 'low' | 'medium' | 'high' = 'medium'
-  ): Promise<ApiResponse<{ file_path: string; download_url: string }>> {
-    const response = await this.api.post('/phase2/export', {
+  ): Promise<ApiResponse<{ format: string; status: string; data: any[]; count: number; download_url?: string; file_path?: string }>> {
+    const response = await this.api.post('/export', {
       automation_ids: [automationId],
       format,
       quality,
@@ -369,7 +369,7 @@ export class VisualAutoViewApi {
     automationIds: string[],
     format: 'pdf' = 'pdf'
   ): Promise<ApiResponse<{ file_path: string; download_url: string }>> {
-    const response = await this.api.post('/phase2/export/batch', {
+    const response = await this.api.post('/export/batch', {
       automation_ids: automationIds,
       format,
     });
@@ -378,17 +378,17 @@ export class VisualAutoViewApi {
 
   // Phase 2: Themes
   async listThemes(): Promise<ApiResponse<any[]>> {
-    const response = await this.api.get('/phase2/themes');
+    const response = await this.api.get('/themes');
     return response.data;
   }
 
   async getTheme(themeId: string): Promise<ApiResponse<any>> {
-    const response = await this.api.get(`/phase2/themes/${themeId}`);
+    const response = await this.api.get(`/themes/${themeId}`);
     return response.data;
   }
 
   async applyTheme(themeId: string, automationIds?: string[]): Promise<ApiResponse<void>> {
-    const response = await this.api.post('/phase2/themes/apply', {
+    const response = await this.api.post('/themes/apply', {
       theme_id: themeId,
       automation_ids: automationIds,
     });
@@ -397,7 +397,7 @@ export class VisualAutoViewApi {
 
   // Phase 2: Comparison
   async compareAutomations(automationIds: string[]): Promise<ApiResponse<any>> {
-    const response = await this.api.post('/phase2/compare', {
+    const response = await this.api.post('/compare', {
       automation_ids: automationIds,
     });
     return response.data;
@@ -408,7 +408,7 @@ export class VisualAutoViewApi {
     threshold: number = 0.5,
     limit: number = 10
   ): Promise<ApiResponse<any[]>> {
-    const response = await this.api.post('/phase2/compare/find-similar', {
+    const response = await this.api.post('/compare/find-similar', {
       automation_id: automationId,
       threshold,
       limit,
@@ -421,43 +421,43 @@ export class VisualAutoViewApi {
     automationId?: string,
     entityId?: string
   ): Promise<ApiResponse<any>> {
-    const response = await this.api.get('/phase3/entity-relationships', {
+    const response = await this.api.get('/relationships/entities', {
       params: { automation_id: automationId, entity_id: entityId },
     });
     return response.data;
   }
 
   async analyzeEntityImpact(entityId: string): Promise<ApiResponse<any>> {
-    const response = await this.api.get(`/phase3/entity-impact/${entityId}`);
+    const response = await this.api.get(`/relationships/impact/${entityId}`);
     return response.data;
   }
 
   // Phase 3: Dependency Graph
   async getDependencyGraph(): Promise<ApiResponse<any>> {
-    const response = await this.api.get('/phase3/dependency-graph');
+    const response = await this.api.get('/relationships/graph');
     return response.data;
   }
 
   async findDependencyChains(): Promise<ApiResponse<any[]>> {
-    const response = await this.api.get('/phase3/dependency-chains');
+    const response = await this.api.get('/relationships/chains');
     return response.data;
   }
 
   async detectCircularDependencies(): Promise<ApiResponse<any[]>> {
-    const response = await this.api.get('/phase3/circular-dependencies');
+    const response = await this.api.get('/relationships/circular');
     return response.data;
   }
 
   // Phase 3: Execution Tracking
   async getExecutionHistory(automationId: string, limit: number = 20): Promise<ApiResponse<any>> {
-    const response = await this.api.get(`/phase3/execution-history/${automationId}`, {
+    const response = await this.api.get(`/execution/history/${automationId}`, {
       params: { limit },
     });
     return response.data;
   }
 
   async getLastExecution(automationId: string): Promise<ApiResponse<any>> {
-    const response = await this.api.get(`/phase3/execution-last/${automationId}`);
+    const response = await this.api.get(`/execution/last/${automationId}`);
     return response.data;
   }
 
@@ -466,32 +466,32 @@ export class VisualAutoViewApi {
     automationId: string,
     period: string = '30days'
   ): Promise<ApiResponse<any>> {
-    const response = await this.api.get(`/phase3/performance-metrics/${automationId}`, {
+    const response = await this.api.get(`/analytics/performance/${automationId}`, {
       params: { period },
     });
     return response.data;
   }
 
   async getSystemPerformance(): Promise<ApiResponse<any>> {
-    const response = await this.api.get('/phase3/system-performance');
+    const response = await this.api.get('/analytics/system');
     return response.data;
   }
 
   // Phase 3: Templates
   async getTemplateVariables(automationId: string): Promise<ApiResponse<any[]>> {
-    const response = await this.api.get(`/phase3/template-variables/${automationId}`);
+    const response = await this.api.get(`/templates/variables/${automationId}`);
     return response.data;
   }
 
   async previewTemplate(automationId: string): Promise<ApiResponse<any>> {
-    const response = await this.api.post('/phase3/preview-template', {
+    const response = await this.api.post('/templates/preview', {
       automation_id: automationId,
     });
     return response.data;
   }
 
   async validateTemplate(automationId: string): Promise<ApiResponse<any>> {
-    const response = await this.api.post('/phase3/validate-template', {
+    const response = await this.api.post('/templates/validate', {
       automation_id: automationId,
     });
     return response.data;

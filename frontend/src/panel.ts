@@ -69,7 +69,10 @@ export class VisualAutoViewPanel extends LitElement {
   }
 
   private handleViewChange(view: string) {
+    console.log('View change requested:', view);
     this.currentView = view;
+    console.log('Current view set to:', this.currentView);
+    this.requestUpdate(); // Force re-render
   }
 
   private handleAutomationSelect(automationId: string) {
@@ -193,6 +196,7 @@ export class VisualAutoViewPanel extends LitElement {
               ></vav-dashboard>`
             : html`<vav-analytics
                 .hass=${this.hass}
+                .selectedAutomation=${this.selectedAutomation}
               ></vav-analytics>`}
         </div>
       </div>
