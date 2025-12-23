@@ -289,7 +289,7 @@ class SearchAutomationsEndpoint(RestApiEndpoint):
         """
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body or "query" not in body:
                 return self.error_response(
@@ -371,7 +371,7 @@ class AdvancedSearchEndpoint(RestApiEndpoint):
         """POST advanced search request."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
@@ -422,7 +422,7 @@ class FilterAutomationsEndpoint(RestApiEndpoint):
         """Filter automations by various criteria."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             automations = self.hass.states.async_entity_ids("automation")
 
@@ -506,7 +506,7 @@ class ExportAutomationsEndpoint(RestApiEndpoint):
         """
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
@@ -572,7 +572,7 @@ class ExportGraphEndpoint(RestApiEndpoint):
             self.log_request("POST", self.url)
 
             automation_id = request.match_info.get("automation_id")
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             result = {
                 "export_id": f"export_{automation_id}",
@@ -677,7 +677,7 @@ class CreateThemeEndpoint(RestApiEndpoint):
         """Create new theme."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body or "name" not in body:
                 return self.error_response(
@@ -709,7 +709,7 @@ class UpdateThemeEndpoint(RestApiEndpoint):
             self.log_request("PUT", self.url)
 
             theme_id = request.match_info.get("theme_id")
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             result = {
                 "id": theme_id,
@@ -766,7 +766,7 @@ class ApplyThemeEndpoint(RestApiEndpoint):
             self.log_request("POST", self.url)
 
             theme_id = request.match_info.get("theme_id")
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             result = {
                 "theme_id": theme_id,
@@ -823,7 +823,7 @@ class ImportThemeEndpoint(RestApiEndpoint):
         """Import theme."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             result = {
                 "theme_id": "imported_theme",
@@ -868,7 +868,7 @@ class CompareAutomationsEndpoint(RestApiEndpoint):
         """
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if (
                 not body

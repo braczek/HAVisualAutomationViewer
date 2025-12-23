@@ -249,7 +249,7 @@ class GetDependencyChainsEndpoint(RestApiEndpoint):
         """Get dependency chains between entities."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body or "source" not in body or "target" not in body:
                 return self.error_response(
@@ -379,7 +379,7 @@ class SimulateExecutionEndpoint(RestApiEndpoint):
         """Simulate automation execution."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
@@ -672,7 +672,7 @@ class PreviewTemplateExpansionEndpoint(RestApiEndpoint):
         """Preview template expansion."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body or "template" not in body:
                 return self.error_response(
@@ -708,7 +708,7 @@ class ValidateTemplateExpressionEndpoint(RestApiEndpoint):
         """Validate template."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid request", HTTPStatus.BAD_REQUEST)
@@ -742,7 +742,7 @@ class EvaluateTemplateScenarioEndpoint(RestApiEndpoint):
         """Evaluate template scenario."""
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             result = {
                 "scenario_id": "scenario_001",

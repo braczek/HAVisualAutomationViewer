@@ -72,13 +72,20 @@ class BaseApiView(HomeAssistantView, ABC):
 
         return (response.to_json(), status)
 
-    def parse_json_body(self, request) -> Optional[Dict]:
+    async def parse_json_body(self, request) -> Optional[Dict]:
         """Parse JSON from request body."""
         try:
-            if isinstance(request.content, bytes):
+            # aiohttp request.content is a StreamReader, need to read it
+            if hasattr(request, 'content') and hasattr(request.content, 'read'):
+                body_bytes = await request.content.read()
+                body = body_bytes.decode("utf-8")
+            elif isinstance(request.content, bytes):
                 body = request.content.decode("utf-8")
-            else:
+            elif isinstance(request.content, str):
                 body = request.content
+            else:
+                # Try to read as text
+                body = await request.text()
 
             return json.loads(body) if body else {}
         except (json.JSONDecodeError, UnicodeDecodeError) as e:

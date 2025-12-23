@@ -80,7 +80,7 @@ class ParseGraphEndpoint(RestApiEndpoint):
         """
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid JSON body", HTTPStatus.BAD_REQUEST)
@@ -524,7 +524,7 @@ class ValidateAutomationEndpoint(RestApiEndpoint):
         """
         try:
             self.log_request("POST", self.url)
-            body = self.parse_json_body(request)
+            body = await self.parse_json_body(request)
 
             if not body:
                 return self.error_response("Invalid JSON body", HTTPStatus.BAD_REQUEST)

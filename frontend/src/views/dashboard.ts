@@ -627,10 +627,10 @@ export class Dashboard extends LitElement {
                 `}
           </div>
           <div class="controls">
-            <button @click=${this.exportAutomation} ?disabled=${!this.selectedAutomation}>
+            <button @click=${() => this.exportAutomation()} ?disabled=${!this.selectedAutomation}>
               Export
             </button>
-            <button @click=${this.compareAutomations} ?disabled=${!this.selectedAutomation}>
+            <button @click=${() => this.compareAutomations()} ?disabled=${!this.selectedAutomation}>
               Compare
             </button>
           </div>
@@ -781,9 +781,11 @@ export class Dashboard extends LitElement {
   }
 
   private async exportAutomation() {
+    console.log('Export button clicked, selected automation:', this.selectedAutomation);
     if (!this.selectedAutomation) return;
     try {
       const result = await this.api!.exportAutomation(this.selectedAutomation.entity_id, 'json');
+      console.log('Export API result:', result);
       
       if (result.success && result.data?.download_url) {
         // Trigger file download
@@ -802,6 +804,7 @@ export class Dashboard extends LitElement {
   }
 
   private async compareAutomations() {
+    console.log('Compare button clicked, selected automation:', this.selectedAutomation);
     if (!this.selectedAutomation) return;
     const event = new CustomEvent('compare-requested', {
       detail: { automation: this.selectedAutomation },
