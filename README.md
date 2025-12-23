@@ -8,7 +8,9 @@
 Visual AutoView is a Home Assistant integration that provides advanced visualization and analysis of automation flows. It helps you understand your automation logic through interactive graphs, search capabilities, and detailed analytics.
 <img width="1660" height="1062" alt="image" src="https://github.com/user-attachments/assets/55b35bfe-464b-46df-abba-609d84259947" />
 
+with fullscreen view:
 
+<img width="1908" height="776" alt="image" src="https://github.com/user-attachments/assets/f600c907-4ac7-40a2-9602-1fb601af8c2f" />
 
 ## ✨ Features
 
