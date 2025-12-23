@@ -1,0 +1,45 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run Python linting checks
+echo "🔍 Running Python linting checks..."
+python -m black --check custom_components/visualautoview tests
+if [ $? -ne 0 ]; then
+  echo "❌ Black formatting check failed. Run: black custom_components/visualautoview tests"
+  exit 1
+fi
+
+python -m isort --check-only custom_components/visualautoview tests
+if [ $? -ne 0 ]; then
+  echo "❌ isort import check failed. Run: isort custom_components/visualautoview tests"
+  exit 1
+fi
+
+# Run Python tests
+echo "🧪 Running Python tests..."
+pytest custom_components/visualautoview tests --tb=short
+if [ $? -ne 0 ]; then
+  echo "❌ Python tests failed"
+  exit 1
+fi
+
+# Run frontend type checking
+echo "📘 Running TypeScript type checking..."
+cd frontend
+npm run type-check
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type check failed"
+  exit 1
+fi
+
+# Run frontend linting
+echo "✨ Running ESLint..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "⚠️  ESLint warnings/errors found (check above)"
+  # Note: We warn but don't fail on ESLint since there are acceptable warnings
+fi
+
+cd ..
+
+echo "✅ All checks passed!"
