@@ -3,6 +3,10 @@
  */
 
 import './app';
+import { initializeAuthHandler } from './services/auth-handler';
+
+// Initialize authentication handler first
+initializeAuthHandler();
 
 // Initialize the application
 const app = document.getElementById('app');

@@ -14,6 +14,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api import setup_api
+from .auth_diagnostics import AuthDiagnostics
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,11 +26,16 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Visual AutoView integration."""
-    _LOGGER.info("Visual AutoView: async_setup called")
+    _LOGGER.info("Visual AutoView integration is being loaded")
 
     # Store a reference to the domain
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
+
+    # Set up API endpoints
+    api_setup_ok = await setup_api(hass)
+    if not api_setup_ok:
+        _LOGGER.warning("FAILED to setup API endpoints")
 
     return True
 
@@ -40,6 +46,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "========== Visual AutoView: Starting setup from config entry =========="
     )
     _LOGGER.info(f"Visual AutoView: Setting up config entry: {entry.entry_id}")
+
+    # Log authentication diagnostics
+    AuthDiagnostics.log_diagnostics(hass)
 
     # Store a reference to the domain
     if DOMAIN not in hass.data:

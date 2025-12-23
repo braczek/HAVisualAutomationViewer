@@ -875,7 +875,7 @@ export class Dashboard extends LitElement {
     }
     
     // Fallback: try to find an entity with this device_id and use its friendly name
-    for (const [entityId, state] of Object.entries(this.hass.states)) {
+    for (const [_entityId, state] of Object.entries(this.hass.states)) {
       if ((state as any).attributes?.device_id === deviceId) {
         const friendlyName = (state as any).attributes?.friendly_name;
         if (friendlyName) {

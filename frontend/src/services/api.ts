@@ -47,6 +47,9 @@ interface SearchResult {
 export class VisualAutoViewApi {
   private api: AxiosInstance;
   private baseUrl: string;
+  private lastTokenValidation: number = 0;
+  private tokenValidationInterval: number = 5 * 60 * 1000; // 5 minutes
+  private isTokenValid: boolean = false;
 
   constructor(baseUrl: string = '/api/visualautoview') {
     this.baseUrl = baseUrl;
@@ -64,9 +67,97 @@ export class VisualAutoViewApi {
       
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+        console.debug('[API] Using auth token from:', this.getTokenSource());
+      } else {
+        console.warn('[API] No Home Assistant token found');
       }
       return config;
     });
+
+    // Add response interceptor to handle auth errors
+    this.api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.error('[API] Authentication failed. Token may have expired.');
+          this.isTokenValid = false;
+          // Try to get a fresh token on next request
+          this.lastTokenValidation = 0;
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    // Initial token validation
+    this.validateTokenOnceAsync();
+  }
+
+  /**
+   * Validate token and refresh if needed (async, non-blocking)
+   */
+  private validateTokenOnceAsync() {
+    setTimeout(() => {
+      this.validateToken();
+    }, 100);
+  }
+
+  /**
+   * Validate the current token
+   */
+  private validateToken() {
+    const now = Date.now();
+    
+    // Only validate if enough time has passed
+    if (now - this.lastTokenValidation < this.tokenValidationInterval) {
+      return;
+    }
+
+    this.lastTokenValidation = now;
+    
+    // Check if token exists and is accessible
+    const token = this.getHassToken();
+    if (!token) {
+      console.warn('[API] No Home Assistant token available. Token validation failed.');
+      this.isTokenValid = false;
+      return;
+    }
+
+    console.debug('[API] Token validation passed');
+    this.isTokenValid = true;
+  }
+
+  /**
+   * Get the source of the token for debugging
+   */
+  private getTokenSource(): string {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('token') || urlParams.get('access_token')) {
+      return 'URL parameters';
+    }
+
+    try {
+      const hassTokens = localStorage.getItem('hassTokens');
+      if (hassTokens) {
+        const tokens = JSON.parse(hassTokens);
+        if (tokens.access_token) {
+          return 'localStorage (hassTokens)';
+        }
+      }
+    } catch (_e) {
+      // Continue to next method
+    }
+
+    const hassConnection = (window as any).hassConnection;
+    if (hassConnection?.auth?.data?.access_token) {
+      return 'window.hassConnection';
+    }
+
+    const hassioToken = (window as any).hassio?.token;
+    if (hassioToken) {
+      return 'legacy hassio token';
+    }
+
+    return 'unknown';
   }
 
   /**
@@ -77,6 +168,7 @@ export class VisualAutoViewApi {
     const urlParams = new URLSearchParams(window.location.search);
     const urlToken = urlParams.get('token') || urlParams.get('access_token');
     if (urlToken) {
+      console.debug('[API] Found token in URL parameters');
       return urlToken;
     }
 
@@ -86,26 +178,59 @@ export class VisualAutoViewApi {
       if (hassTokens) {
         const tokens = JSON.parse(hassTokens);
         if (tokens.access_token) {
+          console.debug('[API] Found token in localStorage (hassTokens)');
           return tokens.access_token;
         }
       }
     } catch (e) {
-      console.warn('Could not read token from localStorage:', e);
+      console.debug('[API] Could not read token from localStorage:', e);
     }
 
     // Method 3: From window.hassConnection (if available)
-    const hassConnection = (window as any).hassConnection;
-    if (hassConnection?.auth?.data?.access_token) {
-      return hassConnection.auth.data.access_token;
+    try {
+      const hassConnection = (window as any).hassConnection;
+      if (hassConnection?.auth?.data?.access_token) {
+        console.debug('[API] Found token in window.hassConnection');
+        return hassConnection.auth.data.access_token;
+      }
+    } catch (e) {
+      console.debug('[API] Could not access window.hassConnection:', e);
     }
 
-    // Method 4: Legacy hassio token
-    const hassioToken = (window as any).hassio?.token;
-    if (hassioToken) {
-      return hassioToken;
+    // Method 4: From window.hass.connection (HA frontend integration)
+    try {
+      const hass = (window as any).hass;
+      if (hass?.connection?.auth?.data?.access_token) {
+        console.debug('[API] Found token in window.hass.connection');
+        return hass.connection.auth.data.access_token;
+      }
+    } catch (e) {
+      console.debug('[API] Could not access window.hass.connection:', e);
     }
 
-    console.error('No Home Assistant token found. Please access this page from within Home Assistant.');
+    // Method 5: Legacy hassio token (Docker/Hass.io environments)
+    try {
+      const hassioToken = (window as any).hassio?.token;
+      if (hassioToken) {
+        console.debug('[API] Found token in legacy hassio');
+        return hassioToken;
+      }
+    } catch (e) {
+      console.debug('[API] Could not access legacy hassio token:', e);
+    }
+
+    // Method 6: Try to get token from sessionStorage (fallback)
+    try {
+      const sessionToken = sessionStorage.getItem('ha_access_token');
+      if (sessionToken) {
+        console.debug('[API] Found token in sessionStorage');
+        return sessionToken;
+      }
+    } catch (e) {
+      console.debug('[API] Could not read from sessionStorage:', e);
+    }
+
+    console.error('[API] No Home Assistant token found in any source. The extension may not work properly on mobile apps. Please ensure you are accessing this from within Home Assistant.');
     return null;
   }
 
@@ -325,15 +450,31 @@ export class VisualAutoViewApi {
 
   // Error handling
   private handleError(error: AxiosError): Promise<never> {
-    console.error('API Error:', error);
-    if (error.response) {
+    const status = error.response?.status;
+    const statusText = error.response?.statusText;
+    const message = (error.response?.data as any)?.message || error.message;
+    
+    if (status === 401 || status === 403) {
+      console.error('[API] Authentication error (401/403):', message);
+      console.error('[API] Token may have expired. Please log in again.');
+      throw new Error(`Authentication failed: ${message}`);
+    } else if (status === 404) {
+      console.error('[API] Endpoint not found (404):', error.config?.url);
+      throw new Error(`API endpoint not found: ${error.config?.url}`);
+    } else if (status === 500) {
+      console.error('[API] Server error (500):', message);
+      throw new Error(`Server error: ${message}`);
+    } else if (error.response) {
       // Server responded with error status
-      throw new Error(`${error.response.status}: ${error.response.statusText}`);
+      console.error('[API] HTTP Error:', status, statusText);
+      throw new Error(`${status}: ${statusText}`);
     } else if (error.request) {
-      // Request made but no response
-      throw new Error('No response from server');
+      // Request made but no response (network error)
+      console.error('[API] Network error: No response from server');
+      throw new Error('Network error: No response from server. Check your connection.');
     } else {
       // Error in request setup
+      console.error('[API] Request setup error:', message);
       throw error;
     }
   }

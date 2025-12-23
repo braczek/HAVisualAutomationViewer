@@ -25,9 +25,12 @@ export default [
                 clearTimeout: 'readonly',
                 URLSearchParams: 'readonly',
                 localStorage: 'readonly',
+                sessionStorage: 'readonly',
                 getComputedStyle: 'readonly',
                 URL: 'readonly',
                 Blob: 'readonly',
+                fetch: 'readonly',
+                navigator: 'readonly',
             },
         },
         plugins: {

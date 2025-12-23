@@ -29,6 +29,21 @@ class BaseApiView(HomeAssistantView, ABC):
         self.hass = hass
         self._logger = _LOGGER
 
+    def add_cors_headers(self, response_data: tuple) -> tuple:
+        """Add CORS headers to response tuple."""
+        body, status = response_data
+        # The response tuple format expects headers as third element
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+            "Access-Control-Allow-Credentials": "true",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+        return (body, status, headers)
+
     def log_request(self, method: str, path: str, data: Optional[Dict] = None):
         """Log incoming request."""
         self._logger.debug(f"{method} {path}" + (f" - {data}" if data else ""))
@@ -36,6 +51,18 @@ class BaseApiView(HomeAssistantView, ABC):
     def log_response(self, status: int, message: str = ""):
         """Log response."""
         self._logger.debug(f"Response {status}" + (f" - {message}" if message else ""))
+
+    def log_auth_issue(self, message: str):
+        """Log authentication-related issues."""
+        self._logger.warning(f"[AUTH] {message}")
+
+    def log_cors_request(self, request):
+        """Log CORS-related request info."""
+        origin = request.headers.get("origin", "unknown")
+        auth = request.headers.get("Authorization", "none")
+        self._logger.debug(
+            f"CORS Request - Origin: {origin}, Auth: {'present' if auth else 'missing'}"
+        )
 
     def json_response(
         self, data: Any, status: int = HTTPStatus.OK, message: str = ""
@@ -48,7 +75,7 @@ class BaseApiView(HomeAssistantView, ABC):
             timestamp=datetime.utcnow(),
         )
 
-        return (response.to_json(), status)
+        return self.add_cors_headers((response.to_json(), status))
 
     def error_response(
         self, error: str, status: int = HTTPStatus.BAD_REQUEST, message: str = ""
@@ -58,7 +85,7 @@ class BaseApiView(HomeAssistantView, ABC):
             success=False, error=error, message=message, timestamp=datetime.utcnow()
         )
 
-        return (response.to_json(), status)
+        return self.add_cors_headers((response.to_json(), status))
 
     def parse_json_body(self, request) -> Optional[Dict]:
         """Parse JSON from request body."""
@@ -93,21 +120,32 @@ class RestApiEndpoint(BaseApiView):
 
     async def get(self, request) -> tuple:
         """Handle GET request."""
-        return self.error_response("GET not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        return self.add_cors_headers(
+            self.error_response("GET not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        )
 
     async def post(self, request) -> tuple:
         """Handle POST request."""
-        return self.error_response("POST not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        return self.add_cors_headers(
+            self.error_response("POST not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        )
 
     async def put(self, request) -> tuple:
         """Handle PUT request."""
-        return self.error_response("PUT not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        return self.add_cors_headers(
+            self.error_response("PUT not supported", HTTPStatus.METHOD_NOT_ALLOWED)
+        )
 
     async def delete(self, request) -> tuple:
         """Handle DELETE request."""
-        return self.error_response(
-            "DELETE not supported", HTTPStatus.METHOD_NOT_ALLOWED
+        return self.add_cors_headers(
+            self.error_response("DELETE not supported", HTTPStatus.METHOD_NOT_ALLOWED)
         )
+
+    async def options(self, request) -> tuple:
+        """Handle OPTIONS request for CORS preflight."""
+        response = {"status": "ok"}
+        return self.add_cors_headers(self.json_response(response, HTTPStatus.OK))
 
 
 class WebSocketHandler(ABC):

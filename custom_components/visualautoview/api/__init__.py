@@ -16,6 +16,7 @@ async def setup_api(hass: HomeAssistant) -> bool:
     """Set up API endpoints for Visual AutoView."""
     try:
         _LOGGER.warning("Visual AutoView API: Starting endpoint registration")
+        _LOGGER.info("Visual AutoView API: CORS support enabled for mobile apps")
 
         # Create registry
         registry = ApiRegistry(hass)
@@ -29,6 +30,7 @@ async def setup_api(hass: HomeAssistant) -> bool:
         )
         for endpoint in phase1_endpoints:
             registry.register(endpoint)
+            _LOGGER.debug(f"  - Registered: {endpoint.url}")
 
         # Register Phase 2 endpoints
         _LOGGER.info("Visual AutoView API: Creating Phase 2 endpoints")
@@ -38,6 +40,7 @@ async def setup_api(hass: HomeAssistant) -> bool:
         )
         for endpoint in phase2_endpoints:
             registry.register(endpoint)
+            _LOGGER.debug(f"  - Registered: {endpoint.url}")
 
         # Register Phase 3 endpoints
         _LOGGER.info("Visual AutoView API: Creating Phase 3 endpoints")
@@ -47,6 +50,7 @@ async def setup_api(hass: HomeAssistant) -> bool:
         )
         for endpoint in phase3_endpoints:
             registry.register(endpoint)
+            _LOGGER.debug(f"  - Registered: {endpoint.url}")
 
         # Register all endpoints with Home Assistant HTTP
         _LOGGER.warning(
@@ -67,6 +71,14 @@ async def setup_api(hass: HomeAssistant) -> bool:
         # Log all registered URLs
         for url in registry.get_endpoints().keys():
             _LOGGER.warning(f"  ✓ Registered: {url}")
+
+        _LOGGER.info(
+            "Visual AutoView API: All endpoints support CORS (Access-Control-Allow-Origin: *)"
+        )
+        _LOGGER.info(
+            "Visual AutoView API: Authentication: requires_auth=True on all endpoints"
+        )
+        _LOGGER.info("Visual AutoView API: Mobile app support: enabled")
 
         return True
 
